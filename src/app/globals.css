@@ -2,7 +2,9 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #171717; 
+  --color-primary: #230d7c; 
+  --light-gray: #555;
 }
 
 @theme inline {
@@ -19,8 +21,35 @@
   }
 }
 
+.bg-primary {
+  background: var(--color-primary);
+}
+
+.bg-secondary {
+  background: url('/bg-2.png') no-repeat center center / cover;
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.placeholder-primary {
+  color: var(--light-gray);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 0, 61, 0.9);
+  z-index: -1;
+}
+
+button {
+  cursor: pointer;
 }

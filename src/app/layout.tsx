@@ -26,8 +26,8 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased
-          bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700
-          text-white min-h-screen flex items-center justify-center h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700`}
+          bg-secondary
+          text-white min-h-screen flex items-center justify-center h-screen`}
       >
         <main className="container mx-auto p-6">{children}</main>
       </body>

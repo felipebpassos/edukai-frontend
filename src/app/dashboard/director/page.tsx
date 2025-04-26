@@ -66,7 +66,7 @@ export default function DirectorDashboardPage() {
             {/* Header + Nav */}
             <header className="mb-8">
                 <div className="flex justify-center">
-                    <Image src="/logo.svg" alt="Eduk.AI" width={140} height={48} />
+                    <Image src="/logo.png" alt="Eduk.AI" width={140} height={48} />
                 </div>
                 <nav className="mt-4 flex justify-center space-x-6 uppercase text-sm">
                     <Link href="#" className="hover:underline">Relatório</Link>

@@ -43,7 +43,7 @@ export default function StudentDashboardPage() {
             {/* Logo */}
             <header className="py-4">
                 <div className="flex items-center justify-center space-x-2">
-                    <Image src="/logo.svg" alt="Eduk.AI" width={120} height={40} />
+                    <Image src="/logo.png" alt="Eduk.AI" width={120} height={40} />
                 </div>
                 {/* Nav */}
                 <nav className="mt-4 flex justify-center space-x-8 uppercase text-sm">
