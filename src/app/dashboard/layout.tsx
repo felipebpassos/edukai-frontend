@@ -1,9 +1,10 @@
-import type { ReactNode } from 'react'
+// src/app/dashboard/layout.tsx
+import { ReactNode } from 'react';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
-        <div>
+        <div className="min-h-screen">
             {children}
         </div>
-    )
+    );
 }

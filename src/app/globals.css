@@ -1,55 +1,74 @@
 @import "tailwindcss";
 
+/* —————————————————————
+   suas variáveis e utilitários
+   ————————————————————— */
 :root {
   --background: #ffffff;
-  --foreground: #171717; 
-  --color-primary: #230d7c; 
+  --foreground: #171717;
+  --color-primary: #230d7c;
+  --color-bg: rgb(30, 13, 71);
+  --color-bg-light: rgb(41, 18, 95);
   --light-gray: #555;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-.bg-primary {
-  background: var(--color-primary);
-}
-
-.bg-secondary {
-  background: url('/bg-2.png') no-repeat center center / cover;
-}
-
-.text-primary {
-  color: var(--color-primary);
-}
-
-.placeholder-primary {
-  color: var(--light-gray);
 }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
   position: relative;
 }
-
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(18, 0, 61, 0.9);
+  background: rgba(18, 0, 61, 0.95);
   z-index: -1;
 }
 
-button {
-  cursor: pointer;
+.bg { background: var(--color-bg); }
+.bg-light { background: var(--color-bg-light); }
+.bg-primary { background: var(--color-primary); }
+.text-primary { color: var(--color-primary); }
+.placeholder-primary { color: var(--light-gray); }
+button { cursor: pointer; }
+
+/* —————————————————————
+   keyframes (animações globais)
+   ————————————————————— */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* —————————————————————
+   estilos do modal sem @apply
+   ————————————————————— */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease-out forwards;
+  z-index: 999;
+}
+
+.modal-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%; 
+  margin: 0 auto;
+  background: #ffffff;
+  border-top-left-radius: 2rem;
+  border-top-right-radius: 2rem;
+  box-shadow: 0 -10px 15px rgba(0, 0, 0, 0.1);
+  height: 90vh;
+  animation: slideUp 0.3s ease-out forwards;
+  z-index: 1000;
+}
+
+.modal-content > * {
+  animation: fadeIn 0.4s ease-out forwards;
 }

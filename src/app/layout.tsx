@@ -1,7 +1,9 @@
-// File: src/app/layout.tsx
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Eduk.AI",
-  description: "Sistema de gestão escolar",
+  description: "Sua escola on-line e aprendizado com IA.",
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -29,7 +35,9 @@ export default function RootLayout({
           bg-secondary
           text-white min-h-screen flex items-center justify-center h-screen`}
       >
-        <main className="container mx-auto p-6">{children}</main>
+        <Providers>
+          <main className="container mx-auto p-6">{children}</main>
+        </Providers>
       </body>
     </html>
   );

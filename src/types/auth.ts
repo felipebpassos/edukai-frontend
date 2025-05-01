@@ -1,3 +1,9 @@
+// /types/auth.ts
 export interface LoginResponse {
-    role: 'STUDENT' | 'DIRECTOR' | 'TEACHER' | 'SUPERVISOR' | 'ADMIN';
+    access_token: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    role: string;
+    schoolId?: string | null;
 }
