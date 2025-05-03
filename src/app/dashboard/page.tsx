@@ -1,3 +1,4 @@
+// src/app/dashboard/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -5,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import StudentDashboard from '@/components/Dashboard/StudentDashboard'
 import DirectorDashboard from '@/components/Dashboard/DirectorDashboard'
+import TeacherDashboard from '@/components/Dashboard/TeacherDashboard'
+import AdminDashboard from '@/components/Dashboard/AdminDashboard'
 import type { RootState } from '@/store'
 
 function useHasMounted() {
@@ -31,11 +34,12 @@ export default function DashboardPage() {
                     ? 'Painel do Aluno | Eduk.AI'
                     : role === 'DIRECTOR'
                         ? 'Painel do Diretor | Eduk.AI'
-                        : 'Dashboard | Eduk.AI'
+                        : role === 'TEACHER'
+                            ? 'Painel do Professor | Eduk.AI'
+                            : 'Painel Administrativo | Eduk.AI'
         }
     }, [hasMounted, role, router])
 
-    // evita renderizar qualquer HTML até que estejamos no client
     if (!hasMounted || !role) return null
 
     switch (role) {
@@ -43,6 +47,11 @@ export default function DashboardPage() {
             return <StudentDashboard />
         case 'DIRECTOR':
             return <DirectorDashboard />
+        case 'TEACHER':
+            return <TeacherDashboard />
+        case 'ADMIN':
+        case 'SUPERVISOR':
+            return <AdminDashboard />
         default:
             return (
                 <div className="p-8 text-center text-red-500">

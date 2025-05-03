@@ -28,13 +28,13 @@ export default function Header({
             <div className="mt-4 flex justify-center">
                 <div className="rounded-[38px] bg-gradient-to-r from-[#7F51D0] via-[#6117E4] to-[#41296A] p-[2px]">
                     <div className="bg rounded-[36px]">
-                        <nav className="flex justify-center space-x-8 text-sm px-8 py-3">
+                        <nav className="flex justify-center space-x-8 text-sm px-8 py-2">
                             {links.map(({ label, onClick }) => (
                                 <button
                                     key={label}
                                     type="button"
                                     onClick={onClick}
-                                    className={`hover:underline ${label === activeLabel ? 'font-semibold' : ''
+                                    className={`${label === activeLabel ? 'font-semibold' : ''
                                         }`}
                                 >
                                     {label}

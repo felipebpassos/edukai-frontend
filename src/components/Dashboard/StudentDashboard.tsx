@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Header from '@/components/Header'
 import Subjects from '@/components/Student/Subjects'
-import Class from '@/components/Student/Class'
+import Classroom from '@/components/Student/Classroom'
 import Grades from '@/components/Student/Grades'
-import Profile from '@/components/Student/Profile'
+import Profile from '@/components/Profile'
 
 type Tab = 'Matérias' | 'Turma' | 'Boletim' | 'Perfil'
 
@@ -17,7 +17,7 @@ export default function StudentDashboard() {
             case 'Matérias':
                 return <Subjects />
             case 'Turma':
-                return <Class />
+                return <Classroom />
             case 'Boletim':
                 return <Grades />
             case 'Perfil':
@@ -29,9 +29,9 @@ export default function StudentDashboard() {
 
     return (
         <div className="min-h-screen text-white">
-            {/* Header como navbar de abas */}
+
             <Header
-                className="py-4 mt-40"
+                className="py-4 mt-24"
                 links={tabs.map(tab => ({
                     label: tab,
                     onClick: () => setActiveTab(tab),
@@ -39,7 +39,6 @@ export default function StudentDashboard() {
                 activeLabel={activeTab}
             />
 
-            {/* Conteúdo da aba */}
             <main className="max-w-3xl mx-auto px-4 py-8">
                 {renderTab()}
             </main>
