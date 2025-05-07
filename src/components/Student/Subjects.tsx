@@ -96,7 +96,6 @@ export default function Subjects() {
                 </ResponsiveContainer>
             </section>
 
-
             {/* Recomendações */}
             <section className="w-fit mx-auto text-center">
                 <h3 className="text-lg mb-4 uppercase text-gray-300">

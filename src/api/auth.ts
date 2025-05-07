@@ -1,3 +1,4 @@
+// src/api/auth.ts
 import type { LoginResponse } from '@/types/auth';
 
 export async function authenticateUser(credentials: {

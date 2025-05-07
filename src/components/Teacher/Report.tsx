@@ -1,7 +1,6 @@
-// src/components/Teacher/Report.tsx
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/store'
 import {
@@ -12,9 +11,17 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
+    LabelList,
 } from 'recharts'
 
 type RankItem = { name: string; score: number }
+
+// opções de turmas
+const classOptions = [
+    '6º C - Ciências',
+    '7º B - Ciências',
+    '8º A - Ciências',
+]
 
 // mock dos dados
 const studentsData: RankItem[] = [
@@ -23,7 +30,7 @@ const studentsData: RankItem[] = [
     { name: 'Maria Freitas', score: 92 },
     { name: 'Ana Nunes', score: 80 },
     { name: 'Reinaldo B.', score: 72 },
-    { name: 'RoseMariana', score: 85 },
+    { name: 'Rose Mariana', score: 85 },
     { name: 'Cristian Silva', score: 68 },
     { name: 'Nathalia Lopez', score: 74 },
 ]
@@ -51,83 +58,186 @@ export default function Report() {
         year: 'numeric',
     }).format(today)
 
+    // estado do select de turma
+    const [selectedClass, setSelectedClass] = useState(classOptions[0])
+
     return (
-        <div className="bg-purple-900/50 p-6 rounded-2xl shadow-lg text-white">
+        <div className="bg-[#2A1248] p-6 rounded-2xl shadow-lg text-white">
             {/* Boas vindas */}
-            <div className="border border-purple-700 rounded-md p-6 mb-8 text-center">
+            <div className="border border-[#3B195D] rounded-md p-6 mb-8 text-center">
                 <p className="text-sm opacity-75">Boas vindas</p>
                 <h1 className="text-2xl font-semibold mt-1">Prof. {name}</h1>
                 <p className="text-sm opacity-75 mt-1">{formattedDate}</p>
             </div>
 
+            {/* Select de turma */}
+            <div className="flex justify-center mb-6">
+                <select
+                    value={selectedClass}
+                    onChange={e => setSelectedClass(e.target.value)}
+                    className="bg-purple-700/50 border border-purple-600 text-white px-4 py-2 rounded-md"
+                >
+                    {classOptions.map(cls => (
+                        <option key={cls} value={cls}>
+                            {cls}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Gráficos */}
             <div className="grid md:grid-cols-2 gap-6 mb-8">
                 {/* Rank da sala (horizontal) */}
-                <section className="bg-purple-800/50 p-4 rounded-lg shadow">
-                    <h2 className="text-xl mb-4">Rank da sala</h2>
-                    <ResponsiveContainer height={300}>
+                <section className="bg-[#3B195D] p-4 rounded-lg shadow">
+                    <h2 className="text-xl font-semibold mb-4">Rank da sala</h2>
+                    <ResponsiveContainer width="100%" height={studentsData.length * 40 + 50}>
                         <BarChart
                             layout="vertical"
                             data={studentsData}
-                            margin={{ top: 0, right: 20, bottom: 0, left: 80 }}
+                            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                            barCategoryGap="20%"
                         >
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                            <defs>
+                                <linearGradient id="studentsGradient" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stopColor="#D8B4FE" stopOpacity={0.9} />
+                                    <stop offset="100%" stopColor="#9333EA" stopOpacity={0.9} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
                             <XAxis type="number" domain={[0, 100]} hide />
                             <YAxis
                                 dataKey="name"
                                 type="category"
-                                tick={{ fontSize: 12 }}
-                                width={120}
+                                tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                                width={180}
+                                axisLine={{ stroke: '#ffffff60' }}
+                                tickLine={false}
+                                interval={0}
                             />
-                            <Tooltip />
+                            <Tooltip
+                                formatter={(v) => [`${v}%`, 'Pontuação']}
+                                contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
+                                itemStyle={{ color: '#EDE9FE' }}
+                                cursor={{ fill: '#ffffff10' }}
+                            />
                             <Bar
                                 dataKey="score"
-                                fill="#A78BFA"
-                                radius={[0, 4, 4, 0]}
-                                barSize={12}
-                            />
+                                fill="url(#studentsGradient)"
+                                radius={[0, 8, 8, 0]}
+                                barSize={20}
+                                animationDuration={800}
+                            >
+                                <LabelList
+                                    dataKey="score"
+                                    position="right"
+                                    formatter={(v: number) => `${v}%`}
+                                    style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
+                                />
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </section>
 
-                {/* Bom Desempenho & Precisa melhorar (vertical) */}
-                <div className="flex flex-col gap-6">
-                    <section className="bg-purple-800/50 p-4 rounded-lg shadow">
-                        <h2 className="text-xl mb-4">Bom Desempenho</h2>
-                        <ResponsiveContainer width="100%" height={150}>
-                            <BarChart data={topPerformers} margin={{ left: 20, right: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                                <Tooltip />
-                                <Bar
+                {/* Bom Desempenho */}
+                <section className="bg-[#3B195D] p-4 rounded-lg shadow">
+                    <h2 className="text-xl font-semibold mb-4">Bom Desempenho</h2>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart
+                            data={topPerformers}
+                            margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                            barCategoryGap="20%"
+                        >
+                            <defs>
+                                <linearGradient id="topGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#D8B4FE" stopOpacity={0.9} />
+                                    <stop offset="100%" stopColor="#9333EA" stopOpacity={0.9} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
+                            <XAxis
+                                dataKey="name"
+                                tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                                axisLine={{ stroke: '#ffffff60' }}
+                            />
+                            <YAxis
+                                domain={[0, 100]}
+                                tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                                axisLine={{ stroke: '#ffffff60' }}
+                            />
+                            <Tooltip
+                                formatter={(v) => [`${v}%`, 'Pontuação']}
+                                contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
+                                itemStyle={{ color: '#EDE9FE' }}
+                                cursor={{ fill: '#ffffff10' }}
+                            />
+                            <Bar
+                                dataKey="score"
+                                fill="url(#topGradient)"
+                                radius={[8, 8, 0, 0]}
+                                barSize={24}
+                                animationDuration={800}
+                            >
+                                <LabelList
                                     dataKey="score"
-                                    fill="#A78BFA"
-                                    radius={[4, 4, 0, 0]}
-                                    barSize={20}
+                                    position="top"
+                                    formatter={(v: number) => `${v}%`}
+                                    style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
                                 />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </section>
-
-                    <section className="bg-purple-800/50 p-4 rounded-lg shadow">
-                        <h2 className="text-xl mb-4">Precisa melhorar</h2>
-                        <ResponsiveContainer width="100%" height={150}>
-                            <BarChart data={lowPerformers} margin={{ left: 20, right: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                                <Tooltip />
-                                <Bar
-                                    dataKey="score"
-                                    fill="#A78BFA"
-                                    radius={[4, 4, 0, 0]}
-                                    barSize={20}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </section>
-                </div>
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </section>
             </div>
+
+            {/* Precisa melhorar */}
+            <section className="bg-[#3B195D] p-4 rounded-lg shadow">
+                <h2 className="text-xl font-semibold mb-4">Precisa melhorar</h2>
+                <ResponsiveContainer width="100%" height={200}>
+                    <BarChart
+                        data={lowPerformers}
+                        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+                        barCategoryGap="20%"
+                    >
+                        <defs>
+                            <linearGradient id="lowGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#D8B4FE" stopOpacity={0.9} />
+                                <stop offset="100%" stopColor="#9333EA" stopOpacity={0.9} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
+                        <XAxis
+                            dataKey="name"
+                            tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                            axisLine={{ stroke: '#ffffff60' }}
+                        />
+                        <YAxis
+                            domain={[0, 100]}
+                            tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                            axisLine={{ stroke: '#ffffff60' }}
+                        />
+                        <Tooltip
+                            formatter={(v) => [`${v}%`, 'Pontuação']}
+                            contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
+                            itemStyle={{ color: '#EDE9FE' }}
+                            cursor={{ fill: '#ffffff10' }}
+                        />
+                        <Bar
+                            dataKey="score"
+                            fill="url(#lowGradient)"
+                            radius={[8, 8, 0, 0]}
+                            barSize={24}
+                            animationDuration={800}
+                        >
+                            <LabelList
+                                dataKey="score"
+                                position="top"
+                                formatter={(v: number) => `${v}%`}
+                                style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
+                            />
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </section>
         </div>
     )
 }

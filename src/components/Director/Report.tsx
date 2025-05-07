@@ -12,6 +12,7 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
+    LabelList,
 } from 'recharts'
 
 type RankItem = { name: string; score: number }
@@ -61,9 +62,9 @@ export default function Report() {
     }).format(today)
 
     return (
-        <div className="bg-purple-900/50 p-6 rounded-2xl shadow-lg text-white">
+        <div className="bg-[#2A1248] p-6 rounded-2xl shadow-lg text-white">
             {/* Boas vindas */}
-            <div className="border border-purple-700 rounded-md p-6 mb-8 text-center">
+            <div className="border border-[#3B195D] rounded-md p-6 mb-8 text-center">
                 <p className="text-sm opacity-75">Boas vindas</p>
                 <h1 className="text-2xl font-semibold mt-1">Diretor(a) {name}</h1>
                 <p className="text-sm opacity-75 mt-1">{formattedDate}</p>
@@ -71,83 +72,158 @@ export default function Report() {
 
             {/* Rankings horizontal */}
             <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <section className="bg-purple-800/50 p-4 rounded-lg shadow">
-                    <h2 className="text-xl mb-4">Rank de classes</h2>
+                {/* Classes */}
+                <section className="bg-[#3B195D] p-4 rounded-lg shadow">
+                    <h2 className="text-xl font-semibold mb-4">Rank de classes</h2>
                     <ResponsiveContainer width="100%" height={200}>
                         <BarChart
                             layout="vertical"
                             data={classesData}
-                            margin={{ top: 0, right: 20, bottom: 0, left: 40 }}
+                            margin={{ top: 20, right: 20, bottom: 5, left: 0 }}
                         >
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                            <defs>
+                                <linearGradient id="classesGradient" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stopColor="#D8B4FE" stopOpacity={0.9} />
+                                    <stop offset="100%" stopColor="#9333EA" stopOpacity={0.9} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
                             <XAxis type="number" domain={[0, 100]} hide />
                             <YAxis
                                 dataKey="name"
                                 type="category"
-                                tick={{ fontSize: 12 }}
-                                width={80}
+                                tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                                width={100}
+                                axisLine={{ stroke: '#ffffff60' }}
                             />
-                            <Tooltip />
+                            <Tooltip
+                                formatter={(v) => [`${v}%`, 'Pontuação']}
+                                contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
+                                itemStyle={{ color: '#EDE9FE' }}
+                                cursor={{ fill: '#ffffff10' }}
+                            />
                             <Bar
                                 dataKey="score"
-                                fill="#A78BFA"
-                                radius={[0, 4, 4, 0]}
-                                barSize={12}
-                            />
+                                fill="url(#classesGradient)"
+                                radius={[0, 8, 8, 0]}
+                                barSize={16}
+                                animationDuration={800}
+                            >
+                                <LabelList
+                                    dataKey="score"
+                                    position="right"
+                                    formatter={(v: number) => `${v}%`}
+                                    style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
+                                />
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </section>
 
-                <section className="bg-purple-800/50 p-4 rounded-lg shadow">
-                    <h2 className="text-xl mb-4">Rank dos professores</h2>
+                {/* Professores */}
+                <section className="bg-[#3B195D] p-4 rounded-lg shadow">
+                    <h2 className="text-xl font-semibold mb-4">Rank dos professores</h2>
                     <ResponsiveContainer width="100%" height={200}>
                         <BarChart
                             layout="vertical"
                             data={profsData}
-                            margin={{ top: 0, right: 20, bottom: 0, left: 40 }}
+                            margin={{ top: 20, right: 20, bottom: 5, left: 0 }}
                         >
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                            <defs>
+                                <linearGradient id="profsGradient" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stopColor="#D8B4FE" stopOpacity={0.9} />
+                                    <stop offset="100%" stopColor="#9333EA" stopOpacity={0.9} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
                             <XAxis type="number" domain={[0, 100]} hide />
                             <YAxis
                                 dataKey="name"
                                 type="category"
-                                tick={{ fontSize: 12 }}
-                                width={120}
+                                tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                                width={140}
+                                axisLine={{ stroke: '#ffffff60' }}
                             />
-                            <Tooltip />
+                            <Tooltip
+                                formatter={(v) => [`${v}%`, 'Pontuação']}
+                                contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
+                                itemStyle={{ color: '#EDE9FE' }}
+                                cursor={{ fill: '#ffffff10' }}
+                            />
                             <Bar
                                 dataKey="score"
-                                fill="#A78BFA"
-                                radius={[0, 4, 4, 0]}
-                                barSize={12}
-                            />
+                                fill="url(#profsGradient)"
+                                radius={[0, 8, 8, 0]}
+                                barSize={16}
+                                animationDuration={800}
+                            >
+                                <LabelList
+                                    dataKey="score"
+                                    position="right"
+                                    formatter={(v: number) => [`${v}%`, 'Pontuação']}
+                                    style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
+                                />
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </section>
             </div>
 
             {/* Ranking vertical de matérias */}
-            <section className="bg-purple-800/50 p-4 rounded-lg shadow mb-8">
-                <h2 className="text-xl mb-4">Ranking de matérias</h2>
-                <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={subjectsData}>
-                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                        <Tooltip />
+            <section className="bg-[#3B195D] p-4 rounded-lg shadow mb-8">
+                <h2 className="text-xl font-semibold mb-4">Ranking de matérias</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={subjectsData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
+                        <defs>
+                            <linearGradient id="subjectsGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#D8B4FE" stopOpacity={0.9} />
+                                <stop offset="100%" stopColor="#9333EA" stopOpacity={0.9} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
+                        <XAxis
+                            dataKey="name"
+                            tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                            axisLine={{ stroke: '#ffffff60' }}
+                        />
+                        <YAxis
+                            domain={[0, 100]}
+                            tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
+                            axisLine={{ stroke: '#ffffff60' }}
+                        />
+                        <Tooltip
+                            formatter={(v) => [`${v}%`, 'Pontuação']}
+                            contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
+                            itemStyle={{ color: '#EDE9FE' }}
+                            cursor={{ fill: '#ffffff10' }}
+                        />
                         <Bar
                             dataKey="score"
-                            fill="#A78BFA"
-                            radius={[4, 4, 0, 0]}
-                            barSize={20}
-                        />
+                            fill="url(#subjectsGradient)"
+                            radius={[8, 8, 0, 0]}
+                            barSize={24}
+                            animationDuration={800}
+                        >
+                            <LabelList
+                                dataKey="score"
+                                position="top"
+                                formatter={(v: number) => `${v}%`}
+                                style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
+                            />
+                        </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </section>
 
-            {/* Resumo gerado por IA */}
+            {/* Texto descritivo */}
             <p className="text-base leading-relaxed">
-                Os dados mostram que a turma <strong>6º C</strong> lidera o desempenho geral com 85%, seguida pelas demais classes. Entre os professores, <strong>Mario Alberto</strong> está no topo com 92% de avaliações positivas. No ranking de matérias, <strong>Inglês</strong> apresenta a maior média (85%), enquanto <strong>Educação Física</strong> e <strong>Filosofia</strong> estão nas faixas inferiores. Esses insights ajudam a identificar áreas de excelência e oportunidades de melhoria na escola.
+                Os dados mostram que a turma <strong>6º C</strong> lidera o desempenho geral com
+                85%, seguida pelas demais classes. Entre os professores, <strong>Mario Alberto</strong>{' '}
+                está no topo com 92% de avaliações positivas. No ranking de matérias,{' '}
+                <strong>Inglês</strong> apresenta a maior média (85%), enquanto{' '}
+                <strong>Educação Física</strong> e <strong>Filosofia</strong> estão nas faixas
+                inferiores. Esses insights ajudam a identificar áreas de excelência e
+                oportunidades de melhoria na escola.
             </p>
         </div>
     )

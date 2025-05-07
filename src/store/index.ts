@@ -1,4 +1,3 @@
-// src/store/index.ts
 import { configureStore } from '@reduxjs/toolkit'
 import { rootReducer, type RootState } from './rootReducer'
 import {
@@ -8,17 +7,13 @@ import {
 
 const isClient = typeof window !== 'undefined'
 
-const preloadedState: Partial<RootState> = {
-    // só chamo loadAuthFromStorage() no client
-    auth: isClient ? loadAuthFromStorage() : undefined,
-}
-
 export const store = configureStore({
     reducer: rootReducer,
-    preloadedState,
+    preloadedState: {
+        auth: isClient ? loadAuthFromStorage() : undefined,
+    },
 })
 
-// só inscrevo o saveAuthToStorage no client
 if (isClient) {
     store.subscribe(() => {
         saveAuthToStorage(store.getState().auth)

@@ -45,13 +45,13 @@ export default function SlideUpModal({
 
                 {/* Conteúdo centralizado */}
                 <div className="relative w-full max-w-3xl mx-auto px-6 h-full flex flex-col">
-                    {/* Título centralizado com text-primary */}
+                    {/* Título */}
                     <header className="pt-10 pb-4 text-center border-b border-gray-200">
                         <div className="inline-block text-primary">{title}</div>
                     </header>
 
-                    {/* Conteúdo com scroll */}
-                    <div className="modal-content flex-1 py-6 overflow-y-auto space-y-6 text-gray-700 text-sm">
+                    {/* Conteúdo responsivo com tipografia adaptável */}
+                    <div className="modal-content flex-1 py-6 overflow-y-auto space-y-6 text-gray-700 prose prose-sm md:prose-base lg:prose-lg">
                         {children}
                     </div>
                 </div>

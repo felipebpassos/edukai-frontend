@@ -1,4 +1,3 @@
-// components/modalInfo.tsx
 import React from 'react';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -26,8 +25,15 @@ export const modalInfo: Record<ModalType, ModalEntry> = {
         content: (
             <>
                 <p>
-                    Bem-vindo à Eduk.ai, sua plataforma de gestão escolar que une notas,
-                    desempenho e o poder da IA em um só lugar.
+                    Bem-vindo à Eduk.ai, a plataforma de gestão escolar do futuro. Aqui, conectamos
+                    tecnologia de ponta com as necessidades reais de escolas, professores, alunos
+                    e responsáveis.
+                </p>
+                <p>
+                    Nosso objetivo é transformar a maneira como a educação é acompanhada e analisada,
+                    oferecendo um ambiente intuitivo, seguro e poderoso. Através da inteligência artificial,
+                    conseguimos gerar resumos automáticos, mapas mentais personalizados e relatórios
+                    em tempo real que facilitam a tomada de decisão.
                 </p>
 
                 <div className="relative w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center my-4">
@@ -40,9 +46,10 @@ export const modalInfo: Record<ModalType, ModalEntry> = {
                 </div>
 
                 <p>
-                    Com a Eduk.ai você cria resumos, mapas mentais e acompanha
-                    o desempenho dos alunos em tempo real. Tudo pensado para tornar
-                    o ensino mais eficiente e alinhado às necessidades de cada estudante.
+                    Acreditamos que cada aluno tem um ritmo, e a tecnologia pode — e deve —
+                    ajudar a construir uma jornada educacional mais personalizada e inclusiva.
+                    A Eduk.ai foi criada pensando nisso: facilitar o dia a dia e ampliar o
+                    potencial de aprendizagem.
                 </p>
             </>
         ),
@@ -53,18 +60,25 @@ export const modalInfo: Record<ModalType, ModalEntry> = {
         content: (
             <>
                 <p>
-                    Na Eduk.ai, sua privacidade é nossa prioridade. Coletamos apenas
-                    os dados necessários para o funcionamento da plataforma e nunca
-                    os compartilhamos sem o seu consentimento prévio.
+                    A sua privacidade é extremamente importante para nós. Na Eduk.ai, tratamos
+                    os seus dados com seriedade, respeitando os mais altos padrões de segurança
+                    e privacidade.
                 </p>
                 <p>
-                    Em conformidade com a LGPD (Lei Geral de Proteção de Dados – Lei nº 13.709/2018),
-                    você tem o direito de acessar, corrigir e solicitar a exclusão dos seus
-                    dados a qualquer momento.
+                    Coletamos apenas as informações estritamente necessárias para o bom
+                    funcionamento da plataforma, como nome, e-mail, dados de login e dados
+                    escolares relacionados à sua atuação na instituição. Esses dados são
+                    utilizados exclusivamente para oferecer uma experiência personalizada,
+                    segura e eficiente.
                 </p>
                 <p>
-                    Caso tenha dúvidas ou queira exercer seus direitos, entre em contato
-                    pelo email <a href="mailto:privacy@eduk.ai" className="underline">privacy@eduk.ai</a>.
+                    Estamos em total conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
+                    Você tem o direito de acessar, corrigir, portar ou até excluir seus dados,
+                    conforme previsto na legislação brasileira.
+                </p>
+                <p>
+                    Caso tenha qualquer dúvida ou deseje exercer seus direitos, entre em contato
+                    conosco pelo e-mail: <a href="mailto:privacy@eduk.ai" className="underline">privacy@eduk.ai</a>.
                 </p>
             </>
         ),
@@ -75,17 +89,25 @@ export const modalInfo: Record<ModalType, ModalEntry> = {
         content: (
             <>
                 <p>
-                    Estes Termos de Uso regem o acesso e uso da plataforma Eduk.ai.
-                    Ao se cadastrar, você concorda em utilizar nossos serviços de forma
-                    responsável e em conformidade com a legislação brasileira.
+                    Estes Termos de Uso regulam o uso da plataforma Eduk.ai. Ao utilizar nossos
+                    serviços, você concorda com os termos aqui apresentados, comprometendo-se
+                    a utilizá-los de forma ética e responsável.
                 </p>
                 <p>
-                    É proibido o uso da plataforma para fins ilícitos, spam ou distribuição
-                    de conteúdo não autorizado.
+                    O acesso à plataforma é concedido mediante cadastro e concordância com os
+                    presentes termos. É estritamente proibido utilizar a Eduk.ai para práticas
+                    ilegais, disseminação de spam, tentativas de invasão, uso indevido de dados
+                    de terceiros ou qualquer ação que prejudique o funcionamento da plataforma
+                    e a experiência dos demais usuários.
                 </p>
                 <p>
-                    Reservamo-nos o direito de suspender ou encerrar contas que violem
-                    estes termos, bem como de atualizar estas condições conforme necessário.
+                    A Eduk.ai se reserva o direito de suspender ou encerrar contas que estejam
+                    em desacordo com estas regras, bem como alterar estes termos sempre que
+                    necessário, com aviso prévio através dos canais oficiais.
+                </p>
+                <p>
+                    Ao continuar usando a plataforma, você concorda automaticamente com quaisquer
+                    atualizações publicadas neste documento.
                 </p>
             </>
         ),
