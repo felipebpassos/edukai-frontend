@@ -1,35 +1,35 @@
+// src/components/Dashboard/SupervisorDashboard.tsx
 'use client'
 
 import { useState } from 'react'
 import Header from '@/components/Header'
-import Report from '@/components/Director/Report'
-import School from '@/components/Director/School'
-import Teachers from '@/components/Director/Teachers'
+import Report from '@/components/Supervisor/Report'
+import Schools from '@/components/Supervisor/Schools'
+import Directors from '@/components/Supervisor/Directors'
 import Profile from '@/components/Profile'
 
-type Tab = 'Relatório' | 'Escola' | 'Professores' | 'Perfil'
+type Tab = 'Relatório' | 'Escolas' | 'Diretores' | 'Perfil'
 
-export default function DirectorDashboard() {
+export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<Tab>('Relatório')
 
     const renderTab = () => {
         switch (activeTab) {
             case 'Relatório':
                 return <Report />
-            case 'Escola':
-                return <School />
-            case 'Professores':
-                return <Teachers />
+            case 'Escolas':
+                return <Schools />
+            case 'Diretores':
+                return <Directors />
             case 'Perfil':
                 return <Profile />
         }
     }
 
-    const tabs: Tab[] = ['Relatório', 'Escola', 'Professores', 'Perfil']
+    const tabs: Tab[] = ['Relatório', 'Escolas', 'Diretores', 'Perfil']
 
     return (
         <div className="min-h-screen text-white py-12">
-
             <Header
                 className="py-4"
                 links={tabs.map(tab => ({

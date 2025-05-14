@@ -34,10 +34,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased
           bg-secondary
-          text-white min-h-screen flex items-center justify-center h-screen`}
+          text-white min-h-screen h-screen`}
       >
         <Providers>
-          <main className="container mx-auto p-6">{children}</main>
+          <main className="container mx-auto">{children}</main>
         </Providers>
       </body>
     </html>

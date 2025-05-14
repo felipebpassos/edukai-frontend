@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux'
 import StudentDashboard from '@/components/Dashboard/StudentDashboard'
 import DirectorDashboard from '@/components/Dashboard/DirectorDashboard'
 import TeacherDashboard from '@/components/Dashboard/TeacherDashboard'
+import SupervisorDashboard from '@/components/Dashboard/SupervisorDashboard'
 import AdminDashboard from '@/components/Dashboard/AdminDashboard'
 import type { RootState } from '@/store'
 
@@ -49,8 +50,9 @@ export default function DashboardPage() {
             return <DirectorDashboard />
         case 'TEACHER':
             return <TeacherDashboard />
-        case 'ADMIN':
         case 'SUPERVISOR':
+            return <SupervisorDashboard />
+        case 'ADMIN':
             return <AdminDashboard />
         default:
             return (

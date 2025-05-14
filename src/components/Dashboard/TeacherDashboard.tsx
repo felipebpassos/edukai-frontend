@@ -29,7 +29,7 @@ export default function TeacherDashboard() {
     const tabs: Tab[] = ['Relatório', 'Turmas', 'Notas', 'Perfil']
 
     return (
-        <div className="min-h-screen text-white">
+        <div className="min-h-screen text-white py-12">
             <Header
                 className="py-4"
                 links={tabs.map(tab => ({

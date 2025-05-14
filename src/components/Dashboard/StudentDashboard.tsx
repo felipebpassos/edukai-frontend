@@ -28,10 +28,10 @@ export default function StudentDashboard() {
     const tabs: Tab[] = ['Matérias', 'Turma', 'Boletim', 'Perfil']
 
     return (
-        <div className="min-h-screen text-white">
+        <div className="min-h-screen text-white py-12">
 
             <Header
-                className="py-4 mt-24"
+                className="py-4"
                 links={tabs.map(tab => ({
                     label: tab,
                     onClick: () => setActiveTab(tab),
