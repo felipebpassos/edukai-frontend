@@ -1,5 +1,6 @@
 // src/app/study-room/page.tsx
 'use client'
+export const dynamic = 'force-dynamic'
 
 import 'github-markdown-css/github-markdown.css'
 import React, { useState, useRef, useEffect } from 'react'
