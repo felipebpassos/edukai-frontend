@@ -2,20 +2,22 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/store'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
 
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
 import Pagination from '@/components/common/Pagination'
-import type { CreateUserRequest, UpdateUserRequest } from '@/types/user'
-import { createTeacher, updateTeacher } from '@/api/user'
 
 type Teacher = {
     id: string
     name: string
     email: string
     subject: string
+}
+
+type CreateTeacherRequest = {
+    name: string;
+    email: string;
+    subject: string;
 }
 
 const initialMockTeachers: Teacher[] = [
@@ -32,8 +34,7 @@ const initialMockTeachers: Teacher[] = [
 ]
 
 export default function Teachers() {
-    const { access_token } = useSelector((state: RootState) => state.auth)
-    const [teachers, setTeachers] = useState<Teacher[]>(initialMockTeachers)
+    const [teachers] = useState<Teacher[]>(initialMockTeachers)
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 6
@@ -54,11 +55,11 @@ export default function Teachers() {
     const [isEditing, setIsEditing] = useState(false)
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
 
-    const fields: FieldConfig<CreateUserRequest>[] = [
+    const fields: FieldConfig<CreateTeacherRequest>[] = [
         { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome' },
         { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email' },
         { name: 'subject', label: 'Disciplina', type: 'text', placeholder: 'Digite a disciplina' },
-    ]
+    ];
 
     const handleNew = () => {
         setIsEditing(false)
@@ -72,29 +73,22 @@ export default function Teachers() {
         setIsModalOpen(true)
     }
 
-    const handleSubmit = async (data: CreateUserRequest) => {
-        if (!access_token) {
-            throw new Error('Token de acesso não encontrado.')
-        }
-
-        if (isEditing && selectedTeacher) {
-            const updated = await updateTeacher(
-                selectedTeacher.id,
-                data as UpdateUserRequest,
-                access_token
-            )
-            setTeachers(
-                teachers.map(t =>
-                    t.id === updated.id ? { ...updated, subject: data.subject! } : t
-                )
-            )
-        } else {
-            const created = await createTeacher(data, access_token)
-            setTeachers([...teachers, { ...(created as Teacher), subject: data.subject! }])
-        }
-
-        setIsModalOpen(false)
+    const handleDelete = (id: string) => {
+        alert('Professor deletado (mock). Veja o console para detalhes.')
+        console.log('Deletar professor com ID:', id)
     }
+
+    const handleSubmit = async (data: CreateTeacherRequest) => {
+        if (isEditing && selectedTeacher) {
+            alert('Professor editado (mock). Veja o console para detalhes.');
+            console.log('Editar professor:', { id: selectedTeacher.id, ...data });
+        } else {
+            alert('Professor criado (mock). Veja o console para detalhes.');
+            console.log('Novo professor:', data);
+        }
+        setIsModalOpen(false);
+    };
+
 
     return (
         <section className="bg-purple-900/50 p-6 rounded-lg shadow text-white">
@@ -143,7 +137,7 @@ export default function Teachers() {
                             >
                                 <FaEdit className="text-white text-sm" />
                             </button>
-                            <button className="p-2 rounded bg-purple-800 hover:bg-purple-600">
+                            <button onClick={() => handleDelete(teacher.id)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
                                 <FaTrash className="text-white text-sm" />
                             </button>
                         </div>
@@ -163,7 +157,8 @@ export default function Teachers() {
                 onPageChange={page => setCurrentPage(page)}
             />
 
-            <AddEditModal<CreateUserRequest>
+
+            <AddEditModal<CreateTeacherRequest>
                 title={isEditing ? 'Editar Professor' : 'Cadastrar Professor'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}

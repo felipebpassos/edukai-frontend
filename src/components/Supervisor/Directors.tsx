@@ -2,14 +2,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/store'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
 
 import Pagination from '@/components/common/Pagination'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
 import type { CreateUserRequest } from '@/types/user'
-import { createDirector, updateDirector } from '@/api/user'
 
 type Director = {
     id: string
@@ -32,8 +29,7 @@ const initialMockDirectors: Director[] = [
 ]
 
 export default function Directors() {
-    const { access_token } = useSelector((state: RootState) => state.auth)
-    const [directors, setDirectors] = useState<Director[]>(initialMockDirectors)
+    const [directors] = useState<Director[]>(initialMockDirectors)
     const [searchTerm, setSearchTerm] = useState<string>('')
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 8
@@ -72,21 +68,19 @@ export default function Directors() {
         setIsModalOpen(true)
     }
 
+    const handleDelete = (id: string) => {
+        alert('Professor deletado (mock). Veja o console para detalhes.')
+        console.log('Deletar professor com ID:', id)
+    }
+
     const handleSubmit = async (data: CreateUserRequest) => {
-        if (!access_token) {
-            throw new Error('Token de acesso não encontrado.')
-        }
-
         if (isEditing && selectedDirector) {
-            const updated = await updateDirector(selectedDirector.id, data, access_token)
-            setDirectors(
-                directors.map((d) => (d.id === updated.id ? updated : d))
-            )
+            alert('Professor editado (mock). Veja o console para detalhes.')
+            console.log('Editar professor:', { id: selectedDirector.id, ...data })
         } else {
-            const created = await createDirector(data, access_token)
-            setDirectors([...directors, created])
+            alert('Professor criado (mock). Veja o console para detalhes.')
+            console.log('Novo professor:', data)
         }
-
         setIsModalOpen(false)
     }
 
@@ -136,7 +130,7 @@ export default function Directors() {
                             >
                                 <FaEdit className="text-white text-sm" />
                             </button>
-                            <button className="p-2 rounded bg-purple-800 hover:bg-purple-600">
+                            <button onClick={() => handleDelete(director.id)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
                                 <FaTrash className="text-white text-sm" />
                             </button>
                         </div>

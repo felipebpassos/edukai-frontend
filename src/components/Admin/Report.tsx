@@ -68,18 +68,20 @@ export default function Report() {
     }).format(today)
 
     // opções de período
-    const periods = [
+    const periods = useMemo(() => [
         { label: 'Últimos 7 Dias', days: 7 },
         { label: 'Últimos 30 Dias', days: 30 },
         { label: 'Últimos 90 Dias', days: 90 },
-    ]
+    ], []);
+
     const [selectedPeriod, setSelectedPeriod] = useState(periods[0].label)
 
     // mock timeData conforme período
     const timeData = useMemo(() => {
-        const opt = periods.find((p) => p.label === selectedPeriod)!
-        return generateMockData(opt.days)
-    }, [selectedPeriod])
+        const opt = periods.find((p) => p.label === selectedPeriod)!;
+        return generateMockData(opt.days);
+    }, [selectedPeriod, periods]);
+
 
     return (
         <div className="bg-[#2A1248] p-6 rounded-2xl shadow-lg text-white">
