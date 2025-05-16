@@ -11,7 +11,7 @@ export type FieldOption = { value: string; label: string }
 export type FieldConfig<T extends FieldValues> = {
     name: Path<T>
     label: string
-    type: 'text' | 'select' | 'multiselect'
+    type: 'text' | 'number' | 'select' | 'multiselect'
     options?: FieldOption[]
     placeholder?: string
 }
@@ -89,7 +89,7 @@ export function AddEditModal<T extends FieldValues>({
                     {fields.map((f) => {
                         const fieldError = errors[f.name] as FieldError | undefined
 
-                        if (f.type === 'text') {
+                        if (f.type === 'text' || f.type === 'number') {
                             return (
                                 <TextInput<T>
                                     key={f.name}
@@ -98,6 +98,7 @@ export function AddEditModal<T extends FieldValues>({
                                     register={register}
                                     error={fieldError}
                                     placeholder={f.placeholder}
+                                    type={f.type}
                                 />
                             )
                         }

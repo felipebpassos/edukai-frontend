@@ -9,6 +9,7 @@ type TextInputProps<T extends FieldValues> = {
     register: UseFormRegister<T>
     error?: FieldError
     placeholder?: string
+    type?: 'text' | 'number' // <-- adicionado
 }
 
 export function TextInput<T extends FieldValues>({
@@ -17,6 +18,7 @@ export function TextInput<T extends FieldValues>({
     register,
     error,
     placeholder,
+    type = 'text', // <-- valor padrão
 }: TextInputProps<T>) {
     return (
         <div>
@@ -25,14 +27,13 @@ export function TextInput<T extends FieldValues>({
             </label>
             <input
                 id={name}
+                type={type} // <-- aqui usa o tipo dinamicamente
                 {...register(name, { required: true })}
                 placeholder={placeholder}
-                className={`
-          w-full rounded px-3 py-2 border 
-          text-black placeholder:text-gray-400 
-          focus:outline-none focus:ring-2 focus:ring-purple-600 
-          ${error ? 'border-red-500' : 'border-gray-300'}
-        `}
+                className={`w-full rounded px-3 py-2 border 
+                    text-black placeholder:text-gray-400 
+                    focus:outline-none focus:ring-2 focus:ring-purple-600 
+                    ${error ? 'border-red-500' : 'border-gray-300'}`}
             />
             {error && (
                 <p className="text-red-500 text-sm mt-1">
@@ -42,4 +43,5 @@ export function TextInput<T extends FieldValues>({
         </div>
     )
 }
+
 

@@ -1,90 +1,74 @@
-// src/components/Supervisor/Directors.tsx
+// src/components/Admin/Clients.tsx
 'use client'
 
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/store'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
-
 import Pagination from '@/components/common/Pagination'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
-import type { CreateUserRequest } from '@/types/user'
-import { createDirector, updateDirector } from '@/api/user'
 
-type Director = {
+type Client = {
     id: string
     name: string
-    email: string
-    phone?: string
+    description: string
 }
 
-const initialMockDirectors: Director[] = [
-    { id: '1', name: 'Maria Oliveira', email: 'maria.oliveira@escola.com' },
-    { id: '2', name: 'João Silva', email: 'joao.silva@escola.com' },
-    { id: '3', name: 'Ana Lima', email: 'ana.lima@escola.com' },
-    { id: '4', name: 'Pedro Santos', email: 'pedro.santos@escola.com' },
-    { id: '5', name: 'Cláudia Souza', email: 'claudia.souza@escola.com' },
-    { id: '6', name: 'Rafael Costa', email: 'rafael.costa@escola.com' },
-    { id: '7', name: 'Fernanda Rocha', email: 'fernanda.rocha@escola.com' },
-    { id: '8', name: 'Lucas Lima', email: 'lucas.lima@escola.com' },
-    { id: '9', name: 'Patrícia Alves', email: 'patricia.alves@escola.com' },
-    { id: '10', name: 'Bruno Pires', email: 'bruno.pires@escola.com' },
+const initialMockClients: Client[] = [
+    { id: '1', name: 'João Supervisor', description: 'Prefeitura de Florianópolis' },
+    { id: '2', name: 'Secretaria de Educação AR', description: 'Prefeitura de Aracaju' },
+    { id: '4', name: 'Cláudia Medeiros', description: 'Prefeitura de Belo Horizonte' },
+    { id: '5', name: 'Rede Alfa Educação', description: 'Grupo privado nacional' },
+    { id: '6', name: 'Secretaria Municipal de Educação de SP', description: 'Prefeitura de São Paulo' },
 ]
 
-export default function Directors() {
-    const { access_token } = useSelector((state: RootState) => state.auth)
-    const [directors, setDirectors] = useState<Director[]>(initialMockDirectors)
+export default function Clients() {
+    const [clients] = useState<Client[]>(initialMockClients)
     const [searchTerm, setSearchTerm] = useState<string>('')
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 8
 
-    // filtra por nome
-    const filteredDirectors = directors.filter((director) =>
-        director.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = clients.filter(c =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    // paginação
-    const totalPages = Math.ceil(filteredDirectors.length / pageSize)
-    const paginatedDirectors = filteredDirectors.slice(
+    const totalPages = Math.ceil(filtered.length / pageSize)
+    const paginated = filtered.slice(
         (currentPage - 1) * pageSize,
         currentPage * pageSize
     )
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
-    const [selectedDirector, setSelectedDirector] = useState<Director | null>(null)
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
-    const fields: FieldConfig<CreateUserRequest>[] = [
+    const fields: FieldConfig<{ name: string; description: string }>[] = [
         { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome' },
-        { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email' },
-        { name: 'phone', label: 'Telefone', type: 'text', placeholder: '(xx) xxxxx-xxxx' },
+        { name: 'description', label: 'Descrição', type: 'text', placeholder: 'Digite a descrição' },
     ]
 
     const handleNew = () => {
         setIsEditing(false)
-        setSelectedDirector(null)
+        setSelectedClient(null)
         setIsModalOpen(true)
     }
 
-    const handleEdit = (director: Director) => {
+    const handleEdit = (client: Client) => {
         setIsEditing(true)
-        setSelectedDirector(director)
+        setSelectedClient(client)
         setIsModalOpen(true)
     }
 
-    const handleSubmit = async (data: CreateUserRequest) => {
-        if (!access_token) {
-            throw new Error('Token de acesso não encontrado.')
-        }
+    const handleDelete = (id: string) => {
+        alert('Cliente deletado (mock). Veja o console para detalhes.')
+        console.log('Deletar cliente com ID:', id)
+    }
 
-        if (isEditing && selectedDirector) {
-            const updated = await updateDirector(selectedDirector.id, data, access_token)
-            setDirectors(
-                directors.map((d) => (d.id === updated.id ? updated : d))
-            )
+    const handleSubmit = async (data: { name: string; description: string }) => {
+        if (isEditing && selectedClient) {
+            alert('Cliente editado (mock). Veja o console para detalhes.')
+            console.log('Editar cliente:', { id: selectedClient.id, ...data })
         } else {
-            const created = await createDirector(data, access_token)
-            setDirectors([...directors, created])
+            alert('Cliente criado (mock). Veja o console para detalhes.')
+            console.log('Novo cliente:', data)
         }
 
         setIsModalOpen(false)
@@ -93,7 +77,7 @@ export default function Directors() {
     return (
         <section className="bg-purple-900/50 p-6 rounded-lg shadow text-white">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold">Diretores</h2>
+                <h2 className="text-2xl font-semibold">Clientes</h2>
                 <button
                     onClick={handleNew}
                     className="flex items-center gap-2 text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
@@ -112,7 +96,7 @@ export default function Directors() {
                     placeholder="Pesquisar por nome"
                     className="w-full pl-10 py-2 px-3 bg-purple-700/20 placeholder-purple-300 text-white rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                     value={searchTerm}
-                    onChange={(e) => {
+                    onChange={e => {
                         setSearchTerm(e.target.value)
                         setCurrentPage(1)
                     }}
@@ -120,32 +104,35 @@ export default function Directors() {
             </div>
 
             <ul className="space-y-4">
-                {paginatedDirectors.map((director) => (
+                {paginated.map(client => (
                     <li
-                        key={director.id}
+                        key={client.id}
                         className="flex justify-between items-center bg-purple-700/20 p-4 rounded"
                     >
                         <div>
-                            <p className="font-medium">{director.name}</p>
-                            <p className="text-sm text-purple-300">{director.email}</p>
+                            <p className="font-medium">{client.name}</p>
+                            <p className="text-sm text-purple-300">{client.description}</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => handleEdit(director)}
+                                onClick={() => handleEdit(client)}
                                 className="p-2 rounded bg-purple-800 hover:bg-purple-600"
                             >
                                 <FaEdit className="text-white text-sm" />
                             </button>
-                            <button className="p-2 rounded bg-purple-800 hover:bg-purple-600">
+                            <button
+                                onClick={() => handleDelete(client.id)}
+                                className="p-2 rounded bg-purple-800 hover:bg-purple-600"
+                            >
                                 <FaTrash className="text-white text-sm" />
                             </button>
                         </div>
                     </li>
                 ))}
 
-                {filteredDirectors.length === 0 && (
+                {filtered.length === 0 && (
                     <p className="text-center text-purple-300">
-                        Nenhum diretor encontrado.
+                        Nenhum cliente encontrado.
                     </p>
                 )}
             </ul>
@@ -156,12 +143,12 @@ export default function Directors() {
                 onPageChange={setCurrentPage}
             />
 
-            <AddEditModal<CreateUserRequest>
-                title={isEditing ? 'Editar Diretor' : 'Cadastrar Diretor'}
+            <AddEditModal<{ name: string; description: string }>
+                title={isEditing ? 'Editar Cliente' : 'Cadastrar Cliente'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}
                 fields={fields}
-                initialValues={selectedDirector ?? undefined}
+                initialValues={selectedClient ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
             />

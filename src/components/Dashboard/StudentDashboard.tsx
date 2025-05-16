@@ -2,22 +2,22 @@
 
 import { useState } from 'react'
 import Header from '@/components/Header'
+import Home from '@/components/Student/Home'
 import Subjects from '@/components/Student/Subjects'
-import Classroom from '@/components/Student/Classroom'
 import Grades from '@/components/Student/Grades'
 import Profile from '@/components/Profile'
 
-type Tab = 'Matérias' | 'Turma' | 'Boletim' | 'Perfil'
+type Tab = 'Home' | 'Matérias' | 'Boletim' | 'Perfil'
 
 export default function StudentDashboard() {
-    const [activeTab, setActiveTab] = useState<Tab>('Matérias')
+    const [activeTab, setActiveTab] = useState<Tab>('Home')
 
     const renderTab = () => {
         switch (activeTab) {
+            case 'Home':
+                return <Home />
             case 'Matérias':
                 return <Subjects />
-            case 'Turma':
-                return <Classroom />
             case 'Boletim':
                 return <Grades />
             case 'Perfil':
@@ -25,7 +25,7 @@ export default function StudentDashboard() {
         }
     }
 
-    const tabs: Tab[] = ['Matérias', 'Turma', 'Boletim', 'Perfil']
+    const tabs: Tab[] = ['Home', 'Matérias', 'Boletim', 'Perfil']
 
     return (
         <div className="min-h-screen text-white py-12">

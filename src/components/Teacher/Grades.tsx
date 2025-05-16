@@ -8,10 +8,16 @@ type StudentGrades = {
     grades: (number | undefined)[]
 }
 
-const classOptions = [
-    '6º C - Ciências',
-    '7º B - Ciências',
-    '8º A - Ciências',
+type ClassOption = {
+    name: string
+    school: string
+}
+
+const classOptions: ClassOption[] = [
+    { name: '6º C - Ciências', school: 'Escola Municipal José de Alencar' },
+    { name: '7º B - Ciências', school: 'Escola Municipal José de Alencar' },
+    { name: '8º A - Ciências', school: 'Colégio Master' },
+    { name: '9º B - Ciências', school: 'Colégio Master' },
 ]
 
 const studentsData: StudentGrades[] = [
@@ -23,20 +29,20 @@ const studentsData: StudentGrades[] = [
 ]
 
 export default function Grades() {
-    const [selectedClass, setSelectedClass] = useState(classOptions[0])
+    const [selectedClassIndex, setSelectedClassIndex] = useState(0)
 
     return (
         <div className="max-w-4xl mx-auto p-8 rounded-xl text-white">
             {/* Select de turma */}
             <div className="flex justify-center mb-6">
                 <select
-                    value={selectedClass}
-                    onChange={e => setSelectedClass(e.target.value)}
+                    value={selectedClassIndex}
+                    onChange={e => setSelectedClassIndex(Number(e.target.value))}
                     className="bg-purple-700/50 border border-purple-600 text-white px-4 py-2 rounded-md"
                 >
-                    {classOptions.map(cls => (
-                        <option key={cls} value={cls}>
-                            {cls}
+                    {classOptions.map((cls, idx) => (
+                        <option key={idx} value={idx}>
+                            {`${cls.name} - ${cls.school}`}
                         </option>
                     ))}
                 </select>

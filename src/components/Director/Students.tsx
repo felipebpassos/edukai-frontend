@@ -1,105 +1,91 @@
-// src/components/Director/Teachers.tsx
 'use client'
 
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from '@/store'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
-
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
 import Pagination from '@/components/common/Pagination'
-import type { CreateUserRequest, UpdateUserRequest } from '@/types/user'
-import { createTeacher, updateTeacher } from '@/api/user'
+import type { CreateUserRequest } from '@/types/user'
 
-type Teacher = {
+type Student = {
     id: string
     name: string
     email: string
-    subject: string
+    classroom: string
 }
 
-const initialMockTeachers: Teacher[] = [
-    { id: '1', name: 'Mario Alberto', email: 'mario.alberto@escola.com', subject: 'Matemática' },
-    { id: '2', name: 'Gustavo Miguel', email: 'gustavo.miguel@escola.com', subject: 'Física' },
-    { id: '3', name: 'Juliana Almeida', email: 'juliana.almeida@escola.com', subject: 'Português' },
-    { id: '4', name: 'Carla Trindade', email: 'carla.trindade@escola.com', subject: 'História' },
-    { id: '5', name: 'Isadora Machado', email: 'isadora.machado@escola.com', subject: 'Inglês' },
-    { id: '6', name: 'Rubens Cruz', email: 'rubens.cruz@escola.com', subject: 'Geografia' },
-    { id: '7', name: 'Karen Freitas', email: 'karen.freitas@escola.com', subject: 'Educação Física' },
-    { id: '8', name: 'Jorge de Oliveira', email: 'jorge.oliveira@escola.com', subject: 'Filosofia' },
-    { id: '9', name: 'Fernanda Lima', email: 'fernanda.lima@escola.com', subject: 'Artes' },
-    { id: '10', name: 'Bruno Santos', email: 'bruno.santos@escola.com', subject: 'Biologia' },
+const initialMockStudents: Student[] = [
+    { id: '1', name: 'Ana Beatriz', email: 'ana.beatriz@escola.com', classroom: 'Turma A' },
+    { id: '2', name: 'Bruno Souza', email: 'bruno.souza@escola.com', classroom: 'Turma B' },
+    { id: '3', name: 'Camila Rocha', email: 'camila.rocha@escola.com', classroom: 'Turma C' },
+    { id: '4', name: 'Diego Ferreira', email: 'diego.ferreira@escola.com', classroom: 'Turma D' },
+    { id: '5', name: 'Eduarda Martins', email: 'eduarda.martins@escola.com', classroom: 'Turma A' },
+    { id: '6', name: 'Felipe Santos', email: 'felipe.santos@escola.com', classroom: 'Turma B' },
+    { id: '7', name: 'Gabriela Lima', email: 'gabriela.lima@escola.com', classroom: 'Turma C' },
+    { id: '8', name: 'Henrique Alves', email: 'henrique.alves@escola.com', classroom: 'Turma D' },
+    { id: '9', name: 'Isabela Costa', email: 'isabela.costa@escola.com', classroom: 'Turma A' },
+    { id: '10', name: 'João Pedro', email: 'joao.pedro@escola.com', classroom: 'Turma B' },
 ]
 
-export default function Teachers() {
-    const { access_token } = useSelector((state: RootState) => state.auth)
-    const [teachers, setTeachers] = useState<Teacher[]>(initialMockTeachers)
+export default function Students() {
+    const [students] = useState<Student[]>(initialMockStudents)
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 6
 
-    // Filtra por nome
-    const filteredTeachers = teachers.filter(t =>
-        t.name.toLowerCase().includes(searchTerm.toLowerCase())
+    // filtro por nome
+    const filteredStudents = students.filter(s =>
+        s.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    // Calcula paginação
-    const totalPages = Math.ceil(filteredTeachers.length / pageSize)
-    const paginatedTeachers = filteredTeachers.slice(
+    // paginação
+    const totalPages = Math.ceil(filteredStudents.length / pageSize)
+    const paginatedStudents = filteredStudents.slice(
         (currentPage - 1) * pageSize,
         currentPage * pageSize
     )
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
-    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
     const fields: FieldConfig<CreateUserRequest>[] = [
         { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome' },
         { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email' },
-        { name: 'subject', label: 'Disciplina', type: 'text', placeholder: 'Digite a disciplina' },
+        { name: 'phone', label: 'Telefone', type: 'text', placeholder: '(xx) xxxxx-xxxx' },
     ]
 
     const handleNew = () => {
         setIsEditing(false)
-        setSelectedTeacher(null)
+        setSelectedStudent(null)
         setIsModalOpen(true)
     }
 
-    const handleEdit = (teacher: Teacher) => {
+    const handleEdit = (student: Student) => {
         setIsEditing(true)
-        setSelectedTeacher(teacher)
+        setSelectedStudent(student)
         setIsModalOpen(true)
+    }
+
+    const handleDelete = (id: string) => {
+        alert('Aluno deletado (mock). Veja o console para detalhes.')
+        console.log('Deletar aluno com ID:', id)
     }
 
     const handleSubmit = async (data: CreateUserRequest) => {
-        if (!access_token) {
-            throw new Error('Token de acesso não encontrado.')
-        }
-
-        if (isEditing && selectedTeacher) {
-            const updated = await updateTeacher(
-                selectedTeacher.id,
-                data as UpdateUserRequest,
-                access_token
-            )
-            setTeachers(
-                teachers.map(t =>
-                    t.id === updated.id ? { ...updated, subject: data.subject! } : t
-                )
-            )
+        if (isEditing && selectedStudent) {
+            alert('Aluno editado (mock). Veja o console para detalhes.')
+            console.log('Editar aluno:', { id: selectedStudent.id, ...data })
         } else {
-            const created = await createTeacher(data, access_token)
-            setTeachers([...teachers, { ...(created as Teacher), subject: data.subject! }])
+            alert('Aluno criado (mock). Veja o console para detalhes.')
+            console.log('Novo aluno:', data)
         }
-
         setIsModalOpen(false)
     }
 
     return (
         <section className="bg-purple-900/50 p-6 rounded-lg shadow text-white">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold">Professores</h2>
+                <h2 className="text-2xl font-semibold">Alunos</h2>
                 <button
                     onClick={handleNew}
                     className="flex items-center gap-2 text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
@@ -126,33 +112,36 @@ export default function Teachers() {
             </div>
 
             <ul className="space-y-4">
-                {paginatedTeachers.map(teacher => (
+                {paginatedStudents.map(student => (
                     <li
-                        key={teacher.id}
+                        key={student.id}
                         className="flex justify-between items-center bg-purple-700/20 p-4 rounded"
                     >
                         <div>
-                            <p className="font-medium">{teacher.name}</p>
-                            <p className="text-sm text-purple-300">{teacher.subject}</p>
-                            <p className="text-xs text-purple-300">{teacher.email}</p>
+                            <p className="font-medium">{student.name}</p>
+                            <p className="text-sm text-purple-300">{student.classroom}</p>
+                            <p className="text-xs text-purple-300">{student.email}</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => handleEdit(teacher)}
+                                onClick={() => handleEdit(student)}
                                 className="p-2 rounded bg-purple-800 hover:bg-purple-600"
                             >
                                 <FaEdit className="text-white text-sm" />
                             </button>
-                            <button className="p-2 rounded bg-purple-800 hover:bg-purple-600">
+                            <button
+                                onClick={() => handleDelete(student.id)}
+                                className="p-2 rounded bg-purple-800 hover:bg-purple-600"
+                            >
                                 <FaTrash className="text-white text-sm" />
                             </button>
                         </div>
                     </li>
                 ))}
 
-                {filteredTeachers.length === 0 && (
+                {filteredStudents.length === 0 && (
                     <p className="text-center text-purple-300">
-                        Nenhum professor encontrado.
+                        Nenhum aluno encontrado.
                     </p>
                 )}
             </ul>
@@ -164,11 +153,11 @@ export default function Teachers() {
             />
 
             <AddEditModal<CreateUserRequest>
-                title={isEditing ? 'Editar Professor' : 'Cadastrar Professor'}
+                title={isEditing ? 'Editar Aluno' : 'Cadastrar Aluno'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}
                 fields={fields}
-                initialValues={selectedTeacher ?? undefined}
+                initialValues={selectedStudent ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
             />

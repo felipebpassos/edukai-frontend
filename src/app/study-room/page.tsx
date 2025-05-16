@@ -74,7 +74,7 @@ function Message({
 type ChatMessage = {
     role: 'user' | 'assistant'
     content: string
-    messageType: 'Resumo' | 'Mapa mental'
+    messageType: 'Resumo' | 'Mapa mental' | 'Questionário'
 }
 
 type ChatSession = {
@@ -95,7 +95,7 @@ export default function StudyRoomPage() {
     const [selectedSubject, setSelectedSubject] = useState<SubjectData>(
         initialSubject
     )
-    const [selectedType, setSelectedType] = useState<'Resumo' | 'Mapa mental'>(
+    const [selectedType, setSelectedType] = useState<'Resumo' | 'Mapa mental' | 'Questionário'>(
         'Resumo'
     )
     const [prompt, setPrompt] = useState('')
@@ -254,7 +254,7 @@ export default function StudyRoomPage() {
     const chatHistory = sessions[currentSession].messages
 
     return (
-        <main className="min-h-[600px] h-[80dvh] p-6 bg-gradient-to-b from-[#2A1248] to-[#15062E] text-white flex flex-col space-y-6">
+        <main className="min-h-[600px] h-[80dvh] p-6 bg-gradient-to-b from-[#2A1248] to-[#15062E] text-white flex flex-col space-y-6 mt-20">
             <div className="mb-2">
                 <button
                     onClick={() => router.back()}
@@ -275,8 +275,9 @@ export default function StudyRoomPage() {
                         }
                         className="p-2 bg-[#1D0A32] rounded-lg text-white"
                     >
-                        <option value="Resumo">Resumo</option>
-                        <option value="Mapa mental">Mapa mental</option>
+                        <option value="summary">Resumo</option>
+                        <option value="mindmap">Mapa mental</option>
+                        <option value="questionnaire">Questionário</option>
                     </select>
                     <select
                         value={selectedSubject.name}

@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 
+import LoginInput from '@/components/LoginInput'
 import SlideUpModal from '@/components/SlideUpModal';
 import BubbleBackground from '@/components/BubbleBackground';
 import { modalInfo, ModalType } from '@/components/modalInfo';
@@ -98,21 +99,19 @@ export default function LoginPage() {
                         Para ter acesso à plataforma, faça o seu login.
                     </p>
 
-                    <input
+                    <LoginInput
                         type="email"
                         placeholder="Usuário"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        className="w-full p-3 mb-4 rounded border border-transparent border-l-6 border-l-purple-700 bg-white placeholder-primary focus:outline-none"
                         required
                     />
 
-                    <input
+                    <LoginInput
                         type="password"
                         placeholder="Senha"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className="w-full p-3 mb-2 rounded border border-transparent border-l-6 border-l-purple-700 bg-white placeholder-primary focus:outline-none"
                         required
                     />
 
@@ -123,7 +122,10 @@ export default function LoginPage() {
                         </label>
                         <a
                             href="#"
-                            onClick={openModal('privacy')}
+                            onClick={(e) => {
+                                e.preventDefault()
+                                alert('Função de recuperação de senha em breve.')
+                            }}
                             className="text-primary hover:underline"
                         >
                             Esqueceu a senha?
@@ -153,7 +155,9 @@ export default function LoginPage() {
                     <a
                         href="#"
                         onClick={openModal('privacy')}
-                        className="text-gray-300 hover:underline"
+                        className="text-gray-300 hover:[text-decoration:underline]"
+                        onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                        onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
                     >
                         políticas de privacidade
                     </a>
@@ -161,7 +165,9 @@ export default function LoginPage() {
                     <a
                         href="#"
                         onClick={openModal('terms')}
-                        className="text-gray-300 hover:underline"
+                        className="text-gray-300"
+                        onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                        onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
                     >
                         termos de uso
                     </a>.
