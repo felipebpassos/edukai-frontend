@@ -1,10 +1,9 @@
-// src/components/Admin/Report.tsx
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import Link from 'next/link'
 import { useSelector } from 'react-redux'
 import type { RootState } from '@/store'
+import type { Tab } from '@/components/Dashboard/AdminDashboard'
 import {
     BarChart,
     Bar,
@@ -21,7 +20,6 @@ import {
 type UsageItem = { name: string; users: number }
 type TimeItem = { date: string; users: number }
 
-// gera mock de uso ao longo do tempo
 function generateMockData(days: number): TimeItem[] {
     const data: TimeItem[] = []
     for (let i = days - 1; i >= 0; i--) {
@@ -33,13 +31,12 @@ function generateMockData(days: number): TimeItem[] {
         }).format(d)
         data.push({
             date,
-            users: Math.floor(Math.random() * 90) + 10, // entre 10 e 100
+            users: Math.floor(Math.random() * 90) + 10,
         })
     }
     return data
 }
 
-// dados de uso por cliente
 const clientsData: UsageItem[] = [
     { name: 'Cliente A', users: 120 },
     { name: 'Cliente B', users: 85 },
@@ -48,17 +45,19 @@ const clientsData: UsageItem[] = [
     { name: 'Cliente E', users: 95 },
 ]
 
-// top 3 clientes por uso
-const topClients = [...clientsData]
+const topClients: UsageItem[] = [...clientsData]
     .sort((a, b) => b.users - a.users)
     .slice(0, 3)
 
-// totais
 const TOTAL_SCHOOLS = 20
 const totalClients = clientsData.length
 const totalUsers = clientsData.reduce((sum, c) => sum + c.users, 0)
 
-export default function Report() {
+interface ReportProps {
+    onTabChange: (tab: Tab) => void
+}
+
+export default function Report({ onTabChange }: ReportProps) {
     const { name } = useSelector((state: RootState) => state.auth)
     const today = new Date()
     const formattedDate = new Intl.DateTimeFormat('pt-BR', {
@@ -67,21 +66,18 @@ export default function Report() {
         year: 'numeric',
     }).format(today)
 
-    // opções de período
     const periods = useMemo(() => [
         { label: 'Últimos 7 Dias', days: 7 },
         { label: 'Últimos 30 Dias', days: 30 },
         { label: 'Últimos 90 Dias', days: 90 },
-    ], []);
+    ], [])
 
     const [selectedPeriod, setSelectedPeriod] = useState(periods[0].label)
 
-    // mock timeData conforme período
     const timeData = useMemo(() => {
-        const opt = periods.find((p) => p.label === selectedPeriod)!;
-        return generateMockData(opt.days);
-    }, [selectedPeriod, periods]);
-
+        const opt = periods.find(p => p.label === selectedPeriod)!
+        return generateMockData(opt.days)
+    }, [selectedPeriod, periods])
 
     return (
         <div className="bg-[#2A1248] p-6 rounded-2xl shadow-lg text-white">
@@ -101,27 +97,36 @@ export default function Report() {
                         <p className="text-sm opacity-75">Total de Clientes</p>
                         <p className="text-2xl font-bold">{totalClients}</p>
                     </div>
-                    <Link href="/clients" className="text-xs underline self-end">
+                    <button
+                        onClick={() => onTabChange('Clientes')}
+                        className="text-xs underline self-end"
+                    >
                         Ver todos
-                    </Link>
+                    </button>
                 </div>
                 <div className="bg-[#3B195D] p-4 rounded-lg shadow flex flex-col justify-between">
                     <div>
                         <p className="text-sm opacity-75">Total de Escolas</p>
                         <p className="text-2xl font-bold">{TOTAL_SCHOOLS}</p>
                     </div>
-                    <Link href="/schools" className="text-xs underline self-end">
+                    <button
+                        onClick={() => onTabChange('Escolas')}
+                        className="text-xs underline self-end"
+                    >
                         Ver todos
-                    </Link>
+                    </button>
                 </div>
                 <div className="bg-[#3B195D] p-4 rounded-lg shadow flex flex-col justify-between">
                     <div>
                         <p className="text-sm opacity-75">Total de Usuários</p>
                         <p className="text-2xl font-bold">{totalUsers}</p>
                     </div>
-                    <Link href="/users" className="text-xs underline self-end">
+                    <button
+                        onClick={() => onTabChange('Usuários')}
+                        className="text-xs underline self-end"
+                    >
                         Ver todos
-                    </Link>
+                    </button>
                 </div>
             </div>
 
@@ -133,10 +138,7 @@ export default function Report() {
                         <h2 className="text-xl font-semibold mb-4 text-center">
                             Usuários por Cliente
                         </h2>
-                        <ResponsiveContainer
-                            width="100%"
-                            height={clientsData.length * 36 + 50}
-                        >
+                        <ResponsiveContainer width="100%" height={clientsData.length * 36 + 50}>
                             <BarChart
                                 layout="vertical"
                                 data={clientsData}
@@ -144,23 +146,9 @@ export default function Report() {
                                 barCategoryGap="12%"
                             >
                                 <defs>
-                                    <linearGradient
-                                        id="adminGradient"
-                                        x1="0"
-                                        y1="0"
-                                        x2="1"
-                                        y2="0"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stopColor="#D8B4FE"
-                                            stopOpacity={0.9}
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stopColor="#9333EA"
-                                            stopOpacity={0.9}
-                                        />
+                                    <linearGradient id="adminGradient" x1="0" y1="0" x2="1" y2="0">
+                                        <stop offset="0%" stopColor="#D8B4FE" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#9333EA" stopOpacity={0.9} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
@@ -168,21 +156,13 @@ export default function Report() {
                                 <YAxis
                                     dataKey="name"
                                     type="category"
-                                    tick={{
-                                        fill: '#EDE9FE',
-                                        fontSize: 12,
-                                        fontWeight: 500,
-                                    }}
+                                    tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
                                     axisLine={false}
                                     tickLine={false}
                                 />
                                 <Tooltip
-                                    formatter={(v) => [v, 'Usuários']}
-                                    contentStyle={{
-                                        backgroundColor: '#1D0A32',
-                                        borderRadius: 8,
-                                        border: 'none',
-                                    }}
+                                    formatter={v => [v, 'Usuários']}
+                                    contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
                                     itemStyle={{ color: '#EDE9FE' }}
                                     cursor={{ fill: '#ffffff10' }}
                                 />
@@ -198,11 +178,7 @@ export default function Report() {
                                         position="right"
                                         offset={8}
                                         formatter={(v: number) => `${v}`}
-                                        style={{
-                                            fill: '#EDE9FE',
-                                            fontSize: 12,
-                                            fontWeight: 600,
-                                        }}
+                                        style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
                                     />
                                 </Bar>
                             </BarChart>
@@ -217,39 +193,23 @@ export default function Report() {
                             Clientes com maior uso
                         </h2>
                         <ResponsiveContainer width="100%" height={160}>
-                            <BarChart
-                                data={topClients}
-                                margin={{ top: 32, right: 24, bottom: 8, left: 8 }}
-                                barCategoryGap="20%"
-                            >
+                            <BarChart data={topClients} margin={{ top: 32, right: 24, bottom: 8, left: 8 }} barCategoryGap="20%">
                                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
                                 <XAxis
                                     dataKey="name"
-                                    tick={{
-                                        fill: '#EDE9FE',
-                                        fontSize: 12,
-                                        fontWeight: 500,
-                                    }}
+                                    tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
                                     axisLine={false}
                                     tickLine={false}
                                 />
                                 <YAxis
                                     domain={[0, 'dataMax']}
-                                    tick={{
-                                        fill: '#EDE9FE',
-                                        fontSize: 12,
-                                        fontWeight: 500,
-                                    }}
+                                    tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
                                     axisLine={false}
                                     tickLine={false}
                                 />
                                 <Tooltip
-                                    formatter={(v) => [v, 'Usuários']}
-                                    contentStyle={{
-                                        backgroundColor: '#1D0A32',
-                                        borderRadius: 8,
-                                        border: 'none',
-                                    }}
+                                    formatter={v => [v, 'Usuários']}
+                                    contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
                                     itemStyle={{ color: '#EDE9FE' }}
                                     cursor={{ fill: '#ffffff10' }}
                                 />
@@ -265,11 +225,7 @@ export default function Report() {
                                         position="top"
                                         offset={8}
                                         formatter={(v: number) => `${v}`}
-                                        style={{
-                                            fill: '#EDE9FE',
-                                            fontSize: 12,
-                                            fontWeight: 600,
-                                        }}
+                                        style={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 600 }}
                                     />
                                 </Bar>
                             </BarChart>
@@ -287,9 +243,9 @@ export default function Report() {
                     <select
                         className="bg-[#2A1248] border border-[#3B195D] text-white rounded px-2 py-1 focus:outline-none text-sm"
                         value={selectedPeriod}
-                        onChange={(e) => setSelectedPeriod(e.target.value)}
+                        onChange={e => setSelectedPeriod(e.target.value)}
                     >
-                        {periods.map((p) => (
+                        {periods.map(p => (
                             <option key={p.label} value={p.label}>
                                 {p.label}
                             </option>
@@ -297,37 +253,22 @@ export default function Report() {
                     </select>
                 </div>
                 <ResponsiveContainer width="100%" height={200}>
-                    <LineChart
-                        data={timeData}
-                        margin={{ top: 8, right: 16, bottom: 8, left: 0 }}
-                    >
+                    <LineChart data={timeData} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff40" />
                         <XAxis
                             dataKey="date"
-                            tick={{
-                                fill: '#EDE9FE',
-                                fontSize: 12,
-                                fontWeight: 500,
-                            }}
+                            tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
                             axisLine={false}
                             tickLine={false}
                         />
                         <YAxis
-                            tick={{
-                                fill: '#EDE9FE',
-                                fontSize: 12,
-                                fontWeight: 500,
-                            }}
+                            tick={{ fill: '#EDE9FE', fontSize: 12, fontWeight: 500 }}
                             axisLine={false}
                             tickLine={false}
                         />
                         <Tooltip
-                            formatter={(v) => [v, 'Usuários']}
-                            contentStyle={{
-                                backgroundColor: '#1D0A32',
-                                borderRadius: 8,
-                                border: 'none',
-                            }}
+                            formatter={v => [v, 'Usuários']}
+                            contentStyle={{ backgroundColor: '#1D0A32', borderRadius: 8, border: 'none' }}
                             itemStyle={{ color: '#EDE9FE' }}
                         />
                         <Line

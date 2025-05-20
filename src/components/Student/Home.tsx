@@ -166,7 +166,7 @@ export default function Home() {
                             style={{ aspectRatio: 0.813 }}
                         >
                             {isActive ? (
-                                <Link href={`/study-room?subject=${encodeURIComponent(subj.name)}`}>
+                                <Link href='/study-room'>
                                     <div className="relative h-full w-full group cursor-pointer">
                                         <Image
                                             src={subj.image}

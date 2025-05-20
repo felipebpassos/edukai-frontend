@@ -1,9 +1,11 @@
 // src/store/rootReducer.ts
 import { combineReducers } from '@reduxjs/toolkit'
-import authReducer from './slices/authSlice'
+import auth from './slices/authSlice'
+import agentAi from './slices/agentAiSlice'
 
 export const rootReducer = combineReducers({
-    auth: authReducer,
+    auth,
+    agentAi,
 })
 
 export type RootState = ReturnType<typeof rootReducer>

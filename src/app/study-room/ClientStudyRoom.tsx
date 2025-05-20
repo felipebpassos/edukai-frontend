@@ -1,10 +1,19 @@
-// src/app/study-room/ClientStudyRoom.tsx
 'use client'
 
 import 'github-markdown-css/github-markdown.css'
 import React, { useState, useRef, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { subjects as subjectsData, SubjectData } from '@/consts/subjects'
+import { useRouter } from 'next/navigation'
+import { useSelector, useDispatch } from 'react-redux'
+import type { RootState } from '@/store'
+import {
+    newSession,
+    selectSession,
+    deleteSession,
+    renameSession,
+    addUserMessage,
+    addAssistantMessage,
+    ChatSession,
+} from '@/store/slices/agentAiSlice'
 import {
     FaPaperPlane,
     FaChevronLeft,
@@ -12,362 +21,246 @@ import {
     FaEllipsisV,
     FaEdit,
     FaTrash,
+    FaMap,
 } from 'react-icons/fa'
+import Image from 'next/image'
 import { useAuth } from '@/hooks/useAuth'
 import { askStudentAgent } from '@/api/agents'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import MindMap, { MindMapData } from '@/components/MindMap'
 
+// Hook para montagem
 function useHasMounted() {
     const [hasMounted, setHasMounted] = useState(false)
     useEffect(() => setHasMounted(true), [])
     return hasMounted
 }
 
+// Indicador de typing
 function TypingIndicator() {
     return (
         <div className="flex space-x-1 p-2">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-wave" />
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-wave delay-150" />
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-wave delay-300" />
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-wave" style={{ animationDelay: '0s' }} />
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-wave" style={{ animationDelay: '0.15s' }} />
+            <div className="w-2 h-2 bg-gray-400 rounded-full animate-wave" style={{ animationDelay: '0.3s' }} />
         </div>
     )
-}
-
-function Message({
-    children,
-    isUser,
-}: {
-    children: React.ReactNode
-    isUser?: boolean
-}) {
-    const [isVisible, setIsVisible] = useState(isUser ?? false)
-    useEffect(() => {
-        if (!isUser) setIsVisible(true)
-    }, [isUser])
-
-    return (
-        <div className={`flex mb-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-            <div
-                className={`
-          max-w-[80%] rounded-lg px-4 py-2
-          ${isUser ? 'bg-purple-500' : 'bg-purple-700'}
-          text-sm sm:text-base
-          transition-opacity duration-500
-          ${isVisible ? 'opacity-100' : 'opacity-0'}
-        `}
-                style={{
-                    transformOrigin: isUser ? 'bottom right' : 'bottom left',
-                }}
-            >
-                <article className="markdown-body break-words">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {children as string}
-                    </ReactMarkdown>
-                </article>
-            </div>
-        </div>
-    )
-}
-
-type ChatMessage = {
-    role: 'user' | 'assistant'
-    content: string
-    messageType: 'Resumo' | 'Mapa mental' | 'Questionário'
-}
-type ChatSession = {
-    title: string
-    messages: ChatMessage[]
 }
 
 export default function ClientStudyRoom() {
+    const dispatch = useDispatch()
     const { auth } = useAuth()
     const router = useRouter()
     const hasMounted = useHasMounted()
-    const params = useSearchParams()
 
-    const subjectFromQuery = params.get('subject') || subjectsData[0].name
-    const initialSubject =
-        subjectsData.find((s) => s.name === subjectFromQuery) ||
-        subjectsData[0]
+    // Modal mental map
+    const [isMindMapModalOpen, setIsMindMapModalOpen] = useState(false)
+    const [mindMapData, setMindMapData] = useState<MindMapData | null>(null)
 
-    const [selectedSubject, setSelectedSubject] = useState<SubjectData>(
-        initialSubject
-    )
-    const [selectedType, setSelectedType] = useState<
-        'Resumo' | 'Mapa mental' | 'Questionário'
-    >('Resumo')
+    // Nova sessão ao montar
+    useEffect(() => { dispatch(newSession()) }, [dispatch])
+
+    // Selectors e estados
+    const allSessions = useSelector((state: RootState) => state.agentAi.sessions)
+    const currentSessionIndex = useSelector((state: RootState) => state.agentAi.currentSessionIndex)
+    const sessionsForHistory = allSessions.filter(sess => sess.messages.some(m => m.role === 'user'))
     const [prompt, setPrompt] = useState('')
-    const [sessions, setSessions] = useState<ChatSession[]>([
-        {
-            title: 'Novo chat',
-            messages: [
-                {
-                    role: 'assistant',
-                    content: 'Olá, como posso te ajudar hoje?',
-                    messageType: 'Resumo',
-                },
-            ],
-        },
-    ])
-    const [currentSession, setCurrentSession] = useState(0)
     const [isTyping, setIsTyping] = useState(false)
     const [dropdownOpen, setDropdownOpen] = useState<number | null>(null)
     const bottomRef = useRef<HTMLDivElement>(null)
 
+    // Primeira mensagem automática
+    useEffect(() => {
+        if (!hasMounted) return
+        const session = allSessions[currentSessionIndex]
+        if (session.messages.length === 0) {
+            setIsTyping(true)
+            const timer = setTimeout(() => {
+                dispatch(addAssistantMessage({ sessionId: session.id, content: 'Olá, como posso te ajudar hoje?' }))
+                setIsTyping(false)
+            }, 1000)
+            return () => clearTimeout(timer)
+        }
+    }, [hasMounted, currentSessionIndex, allSessions, dispatch])
+
+    // Redirect sem token
     useEffect(() => {
         if (!hasMounted) return
         if (!auth.access_token) router.replace('/login')
     }, [hasMounted, auth.access_token, router])
 
-    useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, [sessions, currentSession, isTyping])
+    // Scroll ao fim
+    useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [allSessions, currentSessionIndex, isTyping])
 
+    // Fecha dropdown clicando fora
     useEffect(() => {
-        function handleClickOutside(e: MouseEvent) {
-            if (!(e.target as Element).closest('.dropdown-container')) {
-                setDropdownOpen(null)
-            }
+        function onClickOutside(e: MouseEvent) {
+            if (!(e.target as Element).closest('.dropdown-container')) setDropdownOpen(null)
         }
-        document.addEventListener('click', handleClickOutside)
-        return () =>
-            document.removeEventListener('click', handleClickOutside)
+        document.addEventListener('click', onClickOutside)
+        return () => document.removeEventListener('click', onClickOutside)
     }, [])
 
     if (!hasMounted || !auth.access_token) return null
 
-    const handleNewChat = () => {
-        const newSession: ChatSession = {
-            title: 'Novo chat',
-            messages: [
-                {
-                    role: 'assistant',
-                    content: 'Olá, como posso te ajudar hoje?',
-                    messageType: 'Resumo',
-                },
-            ],
-        }
-        setSessions((prev) => [...prev, newSession])
-        setCurrentSession(sessions.length)
-        setPrompt('')
-        setDropdownOpen(null)
+    // Renderiza conteúdo de mensagem ou botão
+    const renderMessageContent = (content: string) => {
+        const clean = content.trim().replace(/^```json/, '').replace(/```$/, '')
+        try {
+            const parsed = JSON.parse(clean)
+            if (parsed?.mindMap) {
+                return (
+                    <button
+                        onClick={() => { setMindMapData(parsed); setIsMindMapModalOpen(true) }}
+                        className="flex items-center gap-2 px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                    >
+                        <FaMap className="text-white" />
+                        Ver Mapa Mental
+                    </button>
+                )
+            }
+        } catch { }
+        return <article className="markdown-body break-words"><ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown></article>
     }
 
-    const handleSessionClick = (idx: number) => {
-        setCurrentSession(idx)
-        setPrompt('')
-        setDropdownOpen(null)
-    }
-
+    // Handlers chat
+    const handleNewChat = () => { dispatch(newSession()); setPrompt(''); setDropdownOpen(null) }
+    const handleSessionClick = (idx: number) => { dispatch(selectSession({ index: idx })); setPrompt(''); setDropdownOpen(null) }
     const handleSend = () => {
         const text = prompt.trim()
         if (!text) return
 
-        setSessions((prev) =>
-            prev.map((s, i) =>
-                i === currentSession
-                    ? {
-                        ...s,
-                        title: text,
-                        messages: [
-                            ...s.messages,
-                            { role: 'user', content: text, messageType: selectedType },
-                        ],
-                    }
-                    : s
-            )
-        )
+        const session = allSessions[currentSessionIndex]
+
+        if (session.title === 'Novo chat') {
+            dispatch(renameSession({ id: session.id, title: text }))
+        }
+
+        dispatch(addUserMessage({ sessionId: session.id, content: text }))
         setPrompt('')
         setIsTyping(true)
 
         askStudentAgent(text, auth.access_token!)
-            .then(({ answer }) => {
-                setSessions((prev) =>
-                    prev.map((s, i) =>
-                        i === currentSession
-                            ? {
-                                ...s,
-                                messages: [
-                                    ...s.messages,
-                                    {
-                                        role: 'assistant',
-                                        content: answer,
-                                        messageType: selectedType,
-                                    },
-                                ],
-                            }
-                            : s
-                    )
-                )
-            })
-            .catch((err: Error) => {
-                setSessions((prev) =>
-                    prev.map((s, i) =>
-                        i === currentSession
-                            ? {
-                                ...s,
-                                messages: [
-                                    ...s.messages,
-                                    {
-                                        role: 'assistant',
-                                        content: `❗ Erro: ${err.message}`,
-                                        messageType: selectedType,
-                                    },
-                                ],
-                            }
-                            : s
-                    )
-                )
-            })
+            .then(({ answer }) =>
+                dispatch(addAssistantMessage({ sessionId: session.id, content: answer }))
+            )
+            .catch(err =>
+                dispatch(addAssistantMessage({ sessionId: session.id, content: `❗ Erro: ${err.message}` }))
+            )
             .finally(() => setIsTyping(false))
     }
 
-    const handleToggleDropdown = (idx: number) =>
-        setDropdownOpen(dropdownOpen === idx ? null : idx)
-
-    const handleRenameSession = (idx: number) => {
-        const newTitle = window.prompt('Renomear chat:', sessions[idx].title)
-        if (newTitle?.trim()) {
-            setSessions((prev) =>
-                prev.map((s, i) =>
-                    i === idx ? { ...s, title: newTitle.trim() } : s
-                )
-            )
-        }
-        setDropdownOpen(null)
+    // Formatação histórico
+    const now = new Date()
+    const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long' })
+    const getDaysDiff = (a: Date, b: Date) => Math.floor((Date.UTC(a.getFullYear(), a.getMonth(), a.getDate()) - Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())) / (1000 * 60 * 60 * 24))
+    const getLabel = (iso: string) => {
+        const d = new Date(iso), diff = getDaysDiff(now, d)
+        if (diff === 0) return 'Hoje'
+        if (diff === 1) return 'Ontem'
+        if (diff <= 7) return '7 dias anteriores'
+        if (diff <= 30) return '30 dias anteriores'
+        if (diff < 365) return monthFmt.format(d)
+        return `${monthFmt.format(d)} de ${d.getFullYear()}`
     }
-
-    const handleDeleteSession = (idx: number) => {
-        setSessions((prev) => prev.filter((_, i) => i !== idx))
-        if (currentSession === idx) {
-            setCurrentSession((p) => (p > 0 ? p - 1 : 0))
-        } else if (currentSession > idx) {
-            setCurrentSession((p) => p - 1)
-        }
-        setDropdownOpen(null)
-    }
-
-    const chatHistory = sessions[currentSession].messages
+    const sorted = [...sessionsForHistory].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const groups = sorted.reduce<{ label: string; sessions: ChatSession[] }[]>((acc, sess) => {
+        const lbl = getLabel(sess.createdAt)
+        const g = acc.find(x => x.label === lbl)
+        if (g) g.sessions.push(sess)
+        else acc.push({ label: lbl, sessions: [sess] })
+        return acc
+    }, [])
+    const chatHistory = allSessions[currentSessionIndex].messages
 
     return (
-        <main className="min-h-[600px] h-[80dvh] p-6 bg-gradient-to-b from-[#2A1248] to-[#15062E] text-white flex flex-col space-y-6 mt-20">
+        <main className="relative flex container flex-col h-[85dvh] min-h-[500px] p-6 bg-gradient-to-b from-[#2A1248] to-[#15062E] text-white space-y-6">
+
+            {/* Modal full-screen */}
+            {isMindMapModalOpen && mindMapData && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div className="relative w-full h-full">
+                        <button
+                            onClick={() => setIsMindMapModalOpen(false)}
+                            className="absolute top-4 right-4 text-purple-500 text-3xl font-bold hover:text-purple-300 z-10"
+                        >×</button>
+                        <div className="w-full h-full overflow-auto p-4 bg-gray-950 rounded-lg">
+                            <MindMap data={mindMapData} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Header */}
+            <Image src="/logo.png" alt="Logo Eduk.ai" width={120} height={120} className="absolute top-4 left-1/2 transform -translate-x-1/2" />
             <div className="mb-2">
-                <button
-                    onClick={() => router.back()}
-                    className="flex items-center text-sm text-gray-300 hover:text-gray-100"
-                >
-                    <FaChevronLeft className="mr-1" />
-                    Voltar
+                <button onClick={() => router.back()} className="flex items-center text-sm text-gray-300 hover:text-gray-100">
+                    <FaChevronLeft className="mr-1" /> Voltar
                 </button>
             </div>
+            <h1 className="text-xl font-bold text-center mt-4 opacity-50">ASSISTENTE EDUCACIONAL</h1>
 
-            <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <h1 className="text-2xl font-bold">SEU ASSISTENTE EDUCACIONAL</h1>
-                <div className="flex items-center space-x-4">
-                    <select
-                        value={selectedType}
-                        onChange={(e) =>
-                            setSelectedType(e.target.value as 'Resumo' | 'Mapa mental')
-                        }
-                        className="p-2 bg-[#1D0A32] rounded-lg text-white"
-                    >
-                        <option value="summary">Resumo</option>
-                        <option value="mindmap">Mapa mental</option>
-                        <option value="questionnaire">Questionário</option>
-                    </select>
-                    <select
-                        value={selectedSubject.name}
-                        onChange={(e) => {
-                            const s = subjectsData.find((s) => s.name === e.target.value)
-                            if (s) setSelectedSubject(s)
-                        }}
-                        className="w-48 p-2 bg-[#1D0A32] rounded-lg text-white"
-                    >
-                        {subjectsData.map((s) => (
-                            <option key={s.name} value={s.name}>
-                                {s.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </header>
-
-            <div className="flex flex-1 gap-6">
-                <section className="flex-1 flex flex-col bg-[#2A1248] rounded-2xl p-4">
-                    <div className="flex-1 overflow-y-auto">
+            {/* Body */}
+            <div className="flex flex-1 gap-6 overflow-hidden">
+                {/* Chat area */}
+                <section className="flex-1 flex flex-col bg-[#2A1248] rounded-2xl p-4 overflow-hidden">
+                    <div className="chat flex-1 overflow-y-auto pr-2">
                         {chatHistory.map((msg, i) => (
-                            <Message key={i} isUser={msg.role === 'user'}>
-                                {msg.content}
-                            </Message>
+                            <div key={i} className={`flex mb-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.role === 'user' ? 'bg-purple-500' : 'bg-purple-700'} text-sm sm:text-base`} style={{ transformOrigin: msg.role === 'user' ? 'bottom right' : 'bottom left' }}>
+                                    {renderMessageContent(msg.content)}
+                                </div>
+                            </div>
                         ))}
                         {isTyping && <TypingIndicator />}
                         <div ref={bottomRef} />
                     </div>
+                    {/* Input */}
                     <div className="mt-4 flex">
                         <input
                             type="text"
                             value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder={`Pergunte algo sobre ${selectedSubject.name}...`}
-                            className="flex-1 p-2 rounded-l-lg bg-[#1D0A32] text-white focus:outline-none"
+                            onChange={e => setPrompt(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSend()}
+                            placeholder="Peça um resumo, mapa mental ou questionário..."
+                            className="flex-1 p-2 rounded-l-lg bg-[#1D0A32] text-white placeholder-[rgba(194,168,255,0.7)] focus:outline-none"
                         />
-                        <button
-                            onClick={handleSend}
-                            className="px-4 bg-gradient-to-r from-purple-400 to-purple-600 rounded-r-lg flex items-center justify-center"
-                        >
+                        <button onClick={handleSend} className="px-4 bg-gradient-to-r from-purple-400 to-purple-600 rounded-r-lg flex items-center justify-center">
                             <FaPaperPlane />
                         </button>
                     </div>
                 </section>
 
+                {/* Histórico */}
                 <aside className="w-1/3 flex flex-col bg-[#ECE5F6] rounded-2xl p-4 text-gray-800">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="font-semibold">Histórico</h2>
-                        <button
-                            onClick={handleNewChat}
-                            className="p-2 rounded-md hover:bg-[#e0d7f7]"
-                        >
+                        <button onClick={handleNewChat} className="p-2 rounded-md hover:bg-[#e0d7f7]">
                             <FaPlus />
                         </button>
                     </div>
-                    <div className="flex-1 overflow-y-auto space-y-2">
-                        {sessions.map((session, idx) => (
-                            <div
-                                key={idx}
-                                className={`relative flex items-center justify-between px-3 py-2 rounded-md dropdown-container ${currentSession === idx ? 'bg-[#d1c4e9]' : ''
-                                    } hover:bg-[#e0d7f7]`}
-                            >
-                                <button
-                                    className="flex-1 text-left text-sm font-medium truncate"
-                                    onClick={() => handleSessionClick(idx)}
-                                >
-                                    {session.title}
-                                </button>
-                                <button
-                                    onClick={() => handleToggleDropdown(idx)}
-                                    className="ml-2 p-1 rounded hover:bg-gray-200"
-                                >
-                                    <FaEllipsisV />
-                                </button>
-                                {dropdownOpen === idx && (
-                                    <div className="absolute right-2 top-full mt-1 w-32 bg-white rounded shadow-lg text-gray-800 z-10">
-                                        <button
-                                            onClick={() => handleRenameSession(idx)}
-                                            className="flex items-center w-full px-2 py-1 hover:bg-gray-100"
-                                        >
-                                            <FaEdit className="mr-2" /> Renomear
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteSession(idx)}
-                                            className="flex items-center w-full px-2 py-1 hover:bg-gray-100"
-                                        >
-                                            <FaTrash className="mr-2" /> Excluir
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {groups.map(group => (
+                            <React.Fragment key={group.label}>
+                                <div className="py-3 text-xs font-semibold text-gray-500">{group.label}</div>
+                                {group.sessions.map(sess => {
+                                    const idx = allSessions.findIndex(s => s.id === sess.id)
+                                    const active = idx === currentSessionIndex
+                                    return (
+                                        <div key={sess.id} className={`relative flex items-center justify-between px-3 py-2 rounded-md dropdown-container ${active ? 'bg-[#d1c4e9]' : ''} hover:bg-[#e0d7f7]`}>
+                                            <button className="flex-1 text-left text-sm font-medium truncate" onClick={() => handleSessionClick(idx)}>{sess.title}</button>
+                                            <button onClick={() => setDropdownOpen(o => o === idx ? null : idx)} className="ml-2 p-1 rounded hover:bg-gray-200"><FaEllipsisV /></button>
+                                            {dropdownOpen === idx && (
+                                                <div className="absolute right-2 top-full mt-1 w-32 bg-white rounded shadow-lg text-gray-800 z-10">
+                                                    <button onClick={() => { const t = window.prompt('Renomear chat:', sess.title); if (t?.trim()) dispatch(renameSession({ id: sess.id, title: t.trim() })); setDropdownOpen(null) }} className="flex items-center w-full px-2 py-1 hover:bg-gray-100"><FaEdit className="mr-2" />Renomear</button>
+                                                    <button onClick={() => { dispatch(deleteSession({ id: sess.id })); setDropdownOpen(null) }} className="flex items-center w-full px-2 py-1 hover:bg-gray-100"><FaTrash className="mr-2" />Excluir</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </React.Fragment>
                         ))}
                     </div>
                 </aside>

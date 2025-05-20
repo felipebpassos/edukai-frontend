@@ -1,4 +1,3 @@
-// src/components/Dashboard/AdminDashboard.tsx
 'use client'
 
 import { useState } from 'react'
@@ -7,9 +6,9 @@ import Report from '@/components/Admin/Report'
 import Clients from '@/components/Admin/Clients'
 import Schools from '@/components/Admin/Schools'
 import Users from '@/components/Admin/Users'
-import Profile from '@/components/Profile'
+import Options from '@/components/Admin/Options'
 
-type Tab = 'Relatório' | 'Clientes' | 'Escolas' | 'Usuários' | 'Perfil'
+export type Tab = 'Relatório' | 'Clientes' | 'Escolas' | 'Usuários' | 'Opções'
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<Tab>('Relatório')
@@ -17,19 +16,19 @@ export default function AdminDashboard() {
     const renderTab = () => {
         switch (activeTab) {
             case 'Relatório':
-                return <Report />
+                return <Report onTabChange={setActiveTab} />
             case 'Clientes':
                 return <Clients />
             case 'Escolas':
                 return <Schools />
             case 'Usuários':
                 return <Users />
-            case 'Perfil':
-                return <Profile />
+            case 'Opções':
+                return <Options />
         }
     }
 
-    const tabs: Tab[] = ['Relatório', 'Clientes', 'Escolas', 'Usuários', 'Perfil']
+    const tabs: Tab[] = ['Relatório', 'Clientes', 'Escolas', 'Usuários', 'Opções']
 
     return (
         <div className="min-h-screen text-white py-12">

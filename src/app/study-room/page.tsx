@@ -4,5 +4,10 @@ export const dynamic = 'force-dynamic'
 import ClientStudyRoom from './ClientStudyRoom'
 
 export default function StudyRoomPage() {
-    return <ClientStudyRoom />
+
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+            <ClientStudyRoom />
+        </div>
+    );
 }
