@@ -1,5 +1,5 @@
 // src/api/users.ts
-import type { CreateUserRequest, UpdateUserRequest, User } from '@/types/user';
+import type { CreateUserRequest, UpdateUserRequest, User, GetUserByRoleParams, PaginatedResponse } from '@/types/user';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
 
@@ -125,4 +125,112 @@ export function updateStudent(
         },
         body: JSON.stringify(dto),
     }).then(res => handleResponse<User>(res, 'Erro ao atualizar aluno'));
+}
+
+export function getSupervisors(
+    params: GetUserByRoleParams,
+    token: string
+): Promise<PaginatedResponse<User>> {
+    const query = new URLSearchParams()
+    query.append('page', String(params.page))
+    query.append('limit', String(params.limit))
+    if (params.name) query.append('name', params.name)
+    if (params.email) query.append('email', params.email)
+
+    return fetch(
+        `${BASE_URL}/user/supervisor?${query.toString()}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    ).then(res =>
+        handleResponse<PaginatedResponse<User>>(
+            res,
+            'Erro ao buscar supervisores'
+        )
+    )
+}
+
+export function getDirectors(
+    params: GetUserByRoleParams,
+    token: string
+): Promise<PaginatedResponse<User>> {
+    const query = new URLSearchParams();
+    query.append('page', String(params.page));
+    query.append('limit', String(params.limit));
+    if (params.name) query.append('name', params.name);
+    if (params.email) query.append('email', params.email);
+
+    return fetch(
+        `${BASE_URL}/user/director?${query.toString()}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    ).then(res =>
+        handleResponse<PaginatedResponse<User>>(
+            res,
+            'Erro ao buscar diretores'
+        )
+    );
+}
+
+export function getTeachers(
+    params: GetUserByRoleParams,
+    token: string
+): Promise<PaginatedResponse<User>> {
+    const query = new URLSearchParams();
+    query.append('page', String(params.page));
+    query.append('limit', String(params.limit));
+    if (params.name) query.append('name', params.name);
+    if (params.email) query.append('email', params.email);
+
+    return fetch(
+        `${BASE_URL}/user/teacher?${query.toString()}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    ).then(res =>
+        handleResponse<PaginatedResponse<User>>(
+            res,
+            'Erro ao buscar professores'
+        )
+    );
+}
+
+export function getStudents(
+    params: GetUserByRoleParams,
+    token: string
+): Promise<PaginatedResponse<User>> {
+    const query = new URLSearchParams();
+    query.append('page', String(params.page));
+    query.append('limit', String(params.limit));
+    if (params.name) query.append('name', params.name);
+    if (params.email) query.append('email', params.email);
+
+    return fetch(
+        `${BASE_URL}/user/student?${query.toString()}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    ).then(res =>
+        handleResponse<PaginatedResponse<User>>(
+            res,
+            'Erro ao buscar alunos'
+        )
+    );
 }

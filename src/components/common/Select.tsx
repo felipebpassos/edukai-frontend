@@ -1,7 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Controller, Control, FieldError, FieldValues, Path } from 'react-hook-form'
+import {
+    Controller,
+    Control,
+    FieldError,
+    FieldValues,
+    Path,
+    UseControllerProps,
+} from 'react-hook-form'
 
 type Option = { value: string; label: string }
 
@@ -12,6 +19,8 @@ type SelectProps<T extends FieldValues> = {
     error?: FieldError
     options: Option[]
     multiple?: boolean
+    // agora rules usa o tipo exato que Controller espera
+    rules?: UseControllerProps<T, Path<T>>['rules']
 }
 
 export function Select<T extends FieldValues>({
@@ -21,7 +30,14 @@ export function Select<T extends FieldValues>({
     error,
     options,
     multiple = false,
+    rules = {},
 }: SelectProps<T>) {
+    const placeholderText = multiple
+        ? ''
+        : rules.required
+            ? 'Selecione...'
+            : 'Selecione (opcional)'
+
     return (
         <div>
             <label htmlFor={name} className="block text-gray-700 mb-1">
@@ -30,7 +46,7 @@ export function Select<T extends FieldValues>({
             <Controller
                 name={name}
                 control={control}
-                rules={{ required: true }}
+                rules={rules}
                 render={({ field }) => (
                     <select
                         id={name}
@@ -39,7 +55,7 @@ export function Select<T extends FieldValues>({
                         className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring ${error ? 'border-red-500' : 'border-gray-300'
                             }`}
                     >
-                        {!multiple && <option value="">Selecione...</option>}
+                        {!multiple && <option value="">{placeholderText}</option>}
                         {options.map((opt) => (
                             <option key={opt.value} value={opt.value}>
                                 {opt.label}
@@ -48,9 +64,14 @@ export function Select<T extends FieldValues>({
                     </select>
                 )}
             />
+
             {error && (
                 <p className="text-red-500 text-sm mt-1">
-                    {multiple ? 'Seleção obrigatória' : 'Campo obrigatório'}
+                    {error.type === 'required'
+                        ? multiple
+                            ? 'Seleção obrigatória'
+                            : 'Campo obrigatório'
+                        : error.message}
                 </p>
             )}
         </div>

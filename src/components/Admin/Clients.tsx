@@ -1,49 +1,80 @@
 // src/components/Admin/Clients.tsx
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
+import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
+import { getSupervisors } from '@/api/user'
+import type { User } from '@/types/user'
+import type { RootState } from '@/store'
 
 type Client = {
     id: string
     name: string
-    description: string
+    email: string
+    phone: string
 }
 
-const initialMockClients: Client[] = [
-    { id: '1', name: 'João Supervisor', description: 'Prefeitura de Florianópolis' },
-    { id: '2', name: 'Secretaria de Educação AR', description: 'Prefeitura de Aracaju' },
-    { id: '4', name: 'Cláudia Medeiros', description: 'Prefeitura de Belo Horizonte' },
-    { id: '5', name: 'Rede Alfa Educação', description: 'Grupo privado nacional' },
-    { id: '6', name: 'Secretaria Municipal de Educação de SP', description: 'Prefeitura de São Paulo' },
-]
-
 export default function Clients() {
-    const [clients] = useState<Client[]>(initialMockClients)
-    const [searchTerm, setSearchTerm] = useState<string>('')
+    const token = useSelector((state: RootState) => state.auth.access_token)
+    const [allClients, setAllClients] = useState<Client[]>([])
+    const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 8
-
-    const filtered = clients.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    const totalPages = Math.ceil(filtered.length / pageSize)
-    const paginated = filtered.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    )
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
-    const fields: FieldConfig<{ name: string; description: string }>[] = [
-        { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome' },
-        { name: 'description', label: 'Descrição', type: 'text', placeholder: 'Digite a descrição' },
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const fields: FieldConfig<{ name: string; email: string; phone: string }>[] = [
+        { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome', required: true },
+        { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email', required: true },
+        { name: 'phone', label: 'Telefone', type: 'text', placeholder: 'Digite o telefone', required: true },
     ]
+
+    // 1. fetch all supervisors once
+    useEffect(() => {
+        if (!token) return
+        setLoading(true)
+        setError(null)
+
+        getSupervisors({ page: 1, limit: 1000, name: undefined, email: undefined }, token)
+            .then(res => {
+                const clients = res.data.map((u: User) => ({
+                    id: u.id,
+                    name: u.name,
+                    email: u.email ?? '',
+                    phone: u.phone ?? '',
+                }))
+                setAllClients(clients)
+            })
+            .catch(err => setError(err.message))
+            .finally(() => setLoading(false))
+    }, [token])
+
+    // 2. filter + paginate in memory
+    const filtered = allClients.filter(c =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    // never less than one page
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+
+    // enforce valid page
+    const handlePageChange = (page: number) => {
+        if (page < 1 || page > totalPages) return
+        setCurrentPage(page)
+    }
+
+    const paginated = filtered.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    )
 
     const handleNew = () => {
         setIsEditing(false)
@@ -62,7 +93,7 @@ export default function Clients() {
         console.log('Deletar cliente com ID:', id)
     }
 
-    const handleSubmit = async (data: { name: string; description: string }) => {
+    const handleSubmit = async (data: { name: string; email: string; phone: string }) => {
         if (isEditing && selectedClient) {
             alert('Cliente editado (mock). Veja o console para detalhes.')
             console.log('Editar cliente:', { id: selectedClient.id, ...data })
@@ -70,7 +101,6 @@ export default function Clients() {
             alert('Cliente criado (mock). Veja o console para detalhes.')
             console.log('Novo cliente:', data)
         }
-
         setIsModalOpen(false)
     }
 
@@ -82,8 +112,7 @@ export default function Clients() {
                     onClick={handleNew}
                     className="flex items-center gap-2 text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
                 >
-                    <FaPlus className="text-xs" />
-                    Cadastrar
+                    <FaPlus className="text-xs" /> Cadastrar
                 </button>
             </div>
 
@@ -103,47 +132,54 @@ export default function Clients() {
                 />
             </div>
 
-            <ul className="space-y-4">
-                {paginated.map(client => (
-                    <li
-                        key={client.id}
-                        className="flex justify-between items-center bg-purple-700/20 p-4 rounded"
-                    >
-                        <div>
-                            <p className="font-medium">{client.name}</p>
-                            <p className="text-sm text-purple-300">{client.description}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => handleEdit(client)}
-                                className="p-2 rounded bg-purple-800 hover:bg-purple-600"
-                            >
-                                <FaEdit className="text-white text-sm" />
-                            </button>
-                            <button
-                                onClick={() => handleDelete(client.id)}
-                                className="p-2 rounded bg-purple-800 hover:bg-purple-600"
-                            >
-                                <FaTrash className="text-white text-sm" />
-                            </button>
-                        </div>
-                    </li>
-                ))}
+            {error && <p className="text-red-400 mb-4">Erro ao carregar: {error}</p>}
 
-                {filtered.length === 0 && (
-                    <p className="text-center text-purple-300">
-                        Nenhum cliente encontrado.
-                    </p>
+            <ul className="space-y-4">
+                {loading ? (
+                    <p className="text-center text-purple-300">Carregando...</p>
+                ) : paginated.length > 0 ? (
+                    paginated.map(client => (
+                        <li
+                            key={client.id}
+                            className="flex justify-between items-center bg-purple-700/20 p-4 rounded"
+                        >
+                            <div>
+                                <p className="font-medium text-lg">{client.name}</p>
+                                <p className="text-sm text-purple-300">
+                                    <span className="font-semibold">Email:</span> {client.email}
+                                </p>
+                                <p className="text-sm text-purple-300">
+                                    <span className="font-semibold">Telefone:</span> {client.phone}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handleEdit(client)}
+                                    className="p-2 rounded bg-purple-800 hover:bg-purple-600"
+                                >
+                                    <FaEdit className="text-white text-sm" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(client.id)}
+                                    className="p-2 rounded bg-purple-800 hover:bg-purple-600"
+                                >
+                                    <FaTrash className="text-white text-sm" />
+                                </button>
+                            </div>
+                        </li>
+                    ))
+                ) : (
+                    <p className="text-center text-purple-300">Nenhum cliente encontrado.</p>
                 )}
             </ul>
 
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
             />
 
-            <AddEditModal<{ name: string; description: string }>
+            <AddEditModal<{ name: string; email: string; phone: string }>
                 title={isEditing ? 'Editar Cliente' : 'Cadastrar Cliente'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}

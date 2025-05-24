@@ -30,3 +30,20 @@ export interface User {
     updatedAt: string;
     deletedAt?: string;
 }
+
+export interface GetUserByRoleParams {
+    page: number;
+    limit: number;
+    name?: string;
+    email?: string;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    meta: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
+}

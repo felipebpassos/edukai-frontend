@@ -1,65 +1,70 @@
-// src/components/Director/Teachers.tsx
+// src/components/Supervisor/Teachers.tsx
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
-
-import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
+import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
+import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
+import { getTeachers } from '@/api/user'
+import type { CreateUserRequest, User } from '@/types/user'
+import type { RootState } from '@/store'
 
 type Teacher = {
     id: string
     name: string
     email: string
-    subject: string
+    phone?: string
 }
-
-type CreateTeacherRequest = {
-    name: string;
-    email: string;
-    subject: string;
-}
-
-const initialMockTeachers: Teacher[] = [
-    { id: '1', name: 'Mario Alberto', email: 'mario.alberto@escola.com', subject: 'Matemática' },
-    { id: '2', name: 'Gustavo Miguel', email: 'gustavo.miguel@escola.com', subject: 'Física' },
-    { id: '3', name: 'Juliana Almeida', email: 'juliana.almeida@escola.com', subject: 'Português' },
-    { id: '4', name: 'Carla Trindade', email: 'carla.trindade@escola.com', subject: 'História' },
-    { id: '5', name: 'Isadora Machado', email: 'isadora.machado@escola.com', subject: 'Inglês' },
-    { id: '6', name: 'Rubens Cruz', email: 'rubens.cruz@escola.com', subject: 'Geografia' },
-    { id: '7', name: 'Karen Freitas', email: 'karen.freitas@escola.com', subject: 'Educação Física' },
-    { id: '8', name: 'Jorge de Oliveira', email: 'jorge.oliveira@escola.com', subject: 'Filosofia' },
-    { id: '9', name: 'Fernanda Lima', email: 'fernanda.lima@escola.com', subject: 'Artes' },
-    { id: '10', name: 'Bruno Santos', email: 'bruno.santos@escola.com', subject: 'Biologia' },
-]
 
 export default function Teachers() {
-    const [teachers] = useState<Teacher[]>(initialMockTeachers)
+    const token = useSelector((state: RootState) => state.auth.access_token)
+    const [teachers, setTeachers] = useState<Teacher[]>([])
+    const [total, setTotal] = useState(0)
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
-    const pageSize = 6
+    const pageSize = 8
 
-    // Filtra por nome
-    const filteredTeachers = teachers.filter(t =>
-        t.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    // Calcula paginação
-    const totalPages = Math.ceil(filteredTeachers.length / pageSize)
-    const paginatedTeachers = filteredTeachers.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    )
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
 
-    const fields: FieldConfig<CreateTeacherRequest>[] = [
-        { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome' },
-        { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email' },
-        { name: 'subject', label: 'Disciplina', type: 'text', placeholder: 'Digite a disciplina' },
-    ];
+    const fields: FieldConfig<CreateUserRequest>[] = [
+        { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome', required: true },
+        { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email', required: true },
+        { name: 'phone', label: 'Telefone', type: 'text', placeholder: '(xx) xxxxx-xxxx', required: false },
+    ]
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize))
+    const handlePageChange = (page: number) => {
+        if (page < 1 || page > totalPages) return
+        setCurrentPage(page)
+    }
+
+    useEffect(() => {
+        if (!token) return
+        setLoading(true)
+        setError(null)
+
+        getTeachers({ page: currentPage, limit: pageSize, name: searchTerm }, token)
+            .then(res => {
+                const { data, meta } = res
+                setTeachers(
+                    data.map((u: User) => ({
+                        id: u.id,
+                        name: u.name,
+                        email: u.email ?? '',
+                        phone: u.phone ?? '',
+                    }))
+                )
+                setTotal(meta.total)
+            })
+            .catch(err => setError(err.message))
+            .finally(() => setLoading(false))
+    }, [token, currentPage, searchTerm])
 
     const handleNew = () => {
         setIsEditing(false)
@@ -78,17 +83,16 @@ export default function Teachers() {
         console.log('Deletar professor com ID:', id)
     }
 
-    const handleSubmit = async (data: CreateTeacherRequest) => {
+    const handleSubmit = async (data: CreateUserRequest) => {
         if (isEditing && selectedTeacher) {
-            alert('Professor editado (mock). Veja o console para detalhes.');
-            console.log('Editar professor:', { id: selectedTeacher.id, ...data });
+            alert('Professor editado (mock). Veja o console para detalhes.')
+            console.log('Editar professor:', { id: selectedTeacher.id, ...data })
         } else {
-            alert('Professor criado (mock). Veja o console para detalhes.');
-            console.log('Novo professor:', data);
+            alert('Novo professor criado (mock). Veja o console para detalhes.')
+            console.log('Criar professor:', data)
         }
-        setIsModalOpen(false);
-    };
-
+        setIsModalOpen(false)
+    }
 
     return (
         <section className="bg-purple-900/50 p-6 rounded-lg shadow text-white">
@@ -98,8 +102,7 @@ export default function Teachers() {
                     onClick={handleNew}
                     className="flex items-center gap-2 text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
                 >
-                    <FaPlus className="text-xs" />
-                    Cadastrar
+                    <FaPlus className="text-xs" /> Cadastrar
                 </button>
             </div>
 
@@ -119,46 +122,41 @@ export default function Teachers() {
                 />
             </div>
 
-            <ul className="space-y-4">
-                {paginatedTeachers.map(teacher => (
-                    <li
-                        key={teacher.id}
-                        className="flex justify-between items-center bg-purple-700/20 p-4 rounded"
-                    >
-                        <div>
-                            <p className="font-medium">{teacher.name}</p>
-                            <p className="text-sm text-purple-300">{teacher.subject}</p>
-                            <p className="text-xs text-purple-300">{teacher.email}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => handleEdit(teacher)}
-                                className="p-2 rounded bg-purple-800 hover:bg-purple-600"
-                            >
-                                <FaEdit className="text-white text-sm" />
-                            </button>
-                            <button onClick={() => handleDelete(teacher.id)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
-                                <FaTrash className="text-white text-sm" />
-                            </button>
-                        </div>
-                    </li>
-                ))}
+            {error && <p className="text-red-400 mb-4">Erro ao carregar: {error}</p>}
 
-                {filteredTeachers.length === 0 && (
-                    <p className="text-center text-purple-300">
-                        Nenhum professor encontrado.
-                    </p>
+            <ul className="space-y-4">
+                {loading ? (
+                    <p className="text-center text-purple-300">Carregando...</p>
+                ) : teachers.length > 0 ? (
+                    teachers.map(teacher => (
+                        <li key={teacher.id} className="flex justify-between items-center bg-purple-700/20 p-4 rounded">
+                            <div>
+                                <p className="font-medium">{teacher.name}</p>
+                                <p className="text-sm text-purple-300">{teacher.email}</p>
+                                {teacher.phone && <p className="text-sm text-purple-300">{teacher.phone}</p>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => handleEdit(teacher)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
+                                    <FaEdit className="text-white text-sm" />
+                                </button>
+                                <button onClick={() => handleDelete(teacher.id)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
+                                    <FaTrash className="text-white text-sm" />
+                                </button>
+                            </div>
+                        </li>
+                    ))
+                ) : (
+                    <p className="text-center text-purple-300">Nenhum professor encontrado.</p>
                 )}
             </ul>
 
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={page => setCurrentPage(page)}
+                onPageChange={handlePageChange}
             />
 
-
-            <AddEditModal<CreateTeacherRequest>
+            <AddEditModal<CreateUserRequest>
                 title={isEditing ? 'Editar Professor' : 'Cadastrar Professor'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}

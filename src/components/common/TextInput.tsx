@@ -3,32 +3,34 @@
 import React from 'react'
 import { FieldError, FieldValues, Path, UseFormRegister } from 'react-hook-form'
 
-type TextInputProps<T extends FieldValues> = {
+export type TextInputProps<T extends FieldValues> = {
     label: string
     name: Path<T>
     register: UseFormRegister<T>
+    required?: boolean
     error?: FieldError
     placeholder?: string
-    type?: 'text' | 'number' // <-- adicionado
+    type?: 'text' | 'number'
 }
 
 export function TextInput<T extends FieldValues>({
     label,
     name,
     register,
+    required = false,
     error,
     placeholder,
-    type = 'text', // <-- valor padrão
+    type = 'text',
 }: TextInputProps<T>) {
     return (
         <div>
-            <label htmlFor={name} className="block text-gray-700 mb-1">
+            <label htmlFor={String(name)} className="block text-gray-700 mb-1">
                 {label}
             </label>
             <input
-                id={name}
-                type={type} // <-- aqui usa o tipo dinamicamente
-                {...register(name, { required: true })}
+                id={String(name)}
+                type={type}
+                {...register(name, { required })}
                 placeholder={placeholder}
                 className={`w-full rounded px-3 py-2 border 
                     text-black placeholder:text-gray-400 

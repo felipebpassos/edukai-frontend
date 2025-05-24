@@ -14,6 +14,7 @@ export type FieldConfig<T extends FieldValues> = {
     type: 'text' | 'number' | 'select' | 'multiselect'
     options?: FieldOption[]
     placeholder?: string
+    required?: boolean
 }
 
 export interface AddEditModalProps<T extends FieldValues> {
@@ -43,7 +44,6 @@ export function AddEditModal<T extends FieldValues>({
         formState: { errors, isSubmitting },
     } = useForm<T>({
         defaultValues: initialValues as DefaultValues<T>,
-
     })
 
     const [formError, setFormError] = useState<string | null>(null)
@@ -88,14 +88,17 @@ export function AddEditModal<T extends FieldValues>({
                 <form onSubmit={handleSubmit(submitHandler)} className="space-y-4">
                     {fields.map((f) => {
                         const fieldError = errors[f.name] as FieldError | undefined
+                        const isFieldRequired = f.required ?? false
+                        const labelText = isFieldRequired ? `${f.label}*` : f.label
 
                         if (f.type === 'text' || f.type === 'number') {
                             return (
                                 <TextInput<T>
                                     key={f.name}
-                                    label={f.label}
+                                    label={labelText}
                                     name={f.name}
                                     register={register}
+                                    required={isFieldRequired}
                                     error={fieldError}
                                     placeholder={f.placeholder}
                                     type={f.type}
@@ -107,9 +110,10 @@ export function AddEditModal<T extends FieldValues>({
                             return (
                                 <Select<T>
                                     key={f.name}
-                                    label={f.label}
+                                    label={labelText}
                                     name={f.name}
                                     control={control}
+                                    rules={f.required ? { required: true } : {}}
                                     error={fieldError}
                                     options={f.options || []}
                                     multiple={f.type === 'multiselect'}
