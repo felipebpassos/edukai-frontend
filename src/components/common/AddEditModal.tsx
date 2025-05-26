@@ -15,6 +15,8 @@ export type FieldConfig<T extends FieldValues> = {
     options?: FieldOption[]
     placeholder?: string
     required?: boolean
+    min?: number
+    max?: number
 }
 
 export interface AddEditModalProps<T extends FieldValues> {
@@ -102,6 +104,8 @@ export function AddEditModal<T extends FieldValues>({
                                     error={fieldError}
                                     placeholder={f.placeholder}
                                     type={f.type}
+                                    min={f.min}
+                                    max={f.max}
                                 />
                             )
                         }

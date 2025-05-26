@@ -180,6 +180,7 @@ export default function Clients() {
             />
 
             <AddEditModal<{ name: string; email: string; phone: string }>
+                key={isEditing ? selectedClient?.id : 'new'}
                 title={isEditing ? 'Editar Cliente' : 'Cadastrar Cliente'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}

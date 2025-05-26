@@ -182,6 +182,7 @@ export default function Directors() {
 
             {/* Modal */}
             <AddEditModal<CreateUserRequest>
+                key={isEditing ? selectedDirector?.id : 'new'}
                 title={isEditing ? 'Editar Diretor' : 'Cadastrar Diretor'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}

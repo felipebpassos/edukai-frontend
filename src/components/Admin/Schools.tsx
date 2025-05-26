@@ -1,9 +1,13 @@
 // src/components/Admin/Schools.tsx
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaSearch } from 'react-icons/fa'
+import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
+import { getSchools } from '@/api/school'
+import type { RootState } from '@/store'
+import type { School as ApiSchool } from '@/types/school'
 
 type School = {
     id: string
@@ -15,43 +19,46 @@ type School = {
     average: number
 }
 
-const initialMockSchools: School[] = [
-    { id: '1', name: 'EMEF Damião Frei', address: 'Rua das Flores, 123', neighborhood: 'Centro', city: 'Florianópolis', state: 'SC', average: 6 },
-    { id: '2', name: 'CEU EMEF Três Lagos', address: 'Av. dos Lagos, 456', neighborhood: 'Três Lagoas', city: 'Florianópolis', state: 'SC', average: 7 },
-    { id: '3', name: 'CEU EMEF Jardim Eliana', address: 'Rua Primavera, 789', neighborhood: 'Jardim Eliana', city: 'São Paulo', state: 'SP', average: 8 },
-    { id: '4', name: 'EMEF Antônio Alves da Silva', address: 'Av. São Geraldo, 101', neighborhood: 'São Geraldo', city: 'Maceió', state: 'AL', average: 6 },
-    { id: '5', name: 'EMEF Exemplo 5', address: 'Rua Exemplo 5, 50', neighborhood: 'Bairro 5', city: 'Campinas', state: 'SP', average: 5 },
-    { id: '6', name: 'EMEF Exemplo 6', address: 'Rua Exemplo 6, 60', neighborhood: 'Bairro 6', city: 'Campinas', state: 'SP', average: 7 },
-    { id: '7', name: 'EMEF Exemplo 7', address: 'Rua Exemplo 7, 70', neighborhood: 'Bairro 7', city: 'Porto Alegre', state: 'RS', average: 9 },
-    { id: '8', name: 'EMEF Exemplo 8', address: 'Rua Exemplo 8, 80', neighborhood: 'Bairro 8', city: 'Porto Alegre', state: 'RS', average: 6 },
-    { id: '9', name: 'EMEF Exemplo 9', address: 'Rua Exemplo 9, 90', neighborhood: 'Bairro 9', city: 'Salvador', state: 'BA', average: 8 },
-    { id: '10', name: 'EMEF Exemplo 10', address: 'Rua Exemplo 10, 100', neighborhood: 'Bairro 10', city: 'Salvador', state: 'BA', average: 7 },
-    { id: '11', name: 'EMEF Exemplo 11', address: 'Rua Exemplo 11, 110', neighborhood: 'Bairro 11', city: 'Recife', state: 'PE', average: 6 },
-    { id: '12', name: 'EMEF Exemplo 12', address: 'Rua Exemplo 12, 120', neighborhood: 'Bairro 12', city: 'Recife', state: 'PE', average: 5 },
-    { id: '13', name: 'EMEF Exemplo 13', address: 'Rua Exemplo 13, 130', neighborhood: 'Bairro 13', city: 'Fortaleza', state: 'CE', average: 8 },
-    { id: '14', name: 'EMEF Exemplo 14', address: 'Rua Exemplo 14, 140', neighborhood: 'Bairro 14', city: 'Fortaleza', state: 'CE', average: 7 },
-    { id: '15', name: 'EMEF Exemplo 15', address: 'Rua Exemplo 15, 150', neighborhood: 'Bairro 15', city: 'Manaus', state: 'AM', average: 6 },
-    { id: '16', name: 'EMEF Exemplo 16', address: 'Rua Exemplo 16, 160', neighborhood: 'Bairro 16', city: 'Manaus', state: 'AM', average: 9 },
-    { id: '17', name: 'EMEF Exemplo 17', address: 'Rua Exemplo 17, 170', neighborhood: 'Bairro 17', city: 'João Pessoa', state: 'PB', average: 5 },
-    { id: '18', name: 'EMEF Exemplo 18', address: 'Rua Exemplo 18, 180', neighborhood: 'Bairro 18', city: 'João Pessoa', state: 'PB', average: 7 },
-    { id: '19', name: 'EMEF Exemplo 19', address: 'Rua Exemplo 19, 190', neighborhood: 'Bairro 19', city: 'Goiânia', state: 'GO', average: 8 },
-    { id: '20', name: 'EMEF Exemplo 20', address: 'Rua Exemplo 20, 200', neighborhood: 'Bairro 20', city: 'Goiânia', state: 'GO', average: 6 },
-]
-
 export default function Schools() {
-    const [schools] = useState<School[]>(initialMockSchools)
+    const token = useSelector((state: RootState) => state.auth.access_token)
+    const [schools, setSchools] = useState<School[]>([])
+    const [total, setTotal] = useState(0)
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 8
 
-    const filtered = schools.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    const totalPages = Math.ceil(filtered.length / pageSize)
-    const paginated = filtered.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    )
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize))
+
+    useEffect(() => {
+        if (!token) return
+
+        setLoading(true)
+        setError(null)
+
+        getSchools({ page: currentPage, limit: pageSize, name: searchTerm }, token)
+            .then(res => {
+                setSchools(
+                    res.data.map((s: ApiSchool) => ({
+                        id: s.id,
+                        name: s.name,
+                        address: s.address,
+                        neighborhood: s.neighborhood,
+                        city: s.city,
+                        state: s.state,
+                        average: s.averageGrade,
+                    }))
+                )
+                setTotal(res.meta.total)
+            })
+            .catch(err => {
+                console.error('Erro ao carregar escolas:', err)
+                setError(err.message)
+            })
+            .finally(() => setLoading(false))
+    }, [token, currentPage, searchTerm])
 
     const handleView = (id: string) => {
         console.log('Ver escola com ID:', id)
@@ -79,39 +86,45 @@ export default function Schools() {
                 />
             </div>
 
-            <ul className="space-y-4">
-                {paginated.map(school => (
-                    <li
-                        key={school.id}
-                        className="flex justify-between items-center bg-purple-700/20 p-4 rounded"
-                    >
-                        <div>
-                            <p className="font-medium">{school.name}</p>
-                            <p className="text-sm text-purple-300">
-                                {school.address}, {school.neighborhood}, {school.city} – {school.state}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => handleView(school.id)}
-                            className="text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
-                        >
-                            Ver escola
-                        </button>
-                    </li>
-                ))}
+            {error && (
+                <p className="text-red-400 mb-4">Erro ao carregar: {error}</p>
+            )}
 
-                {filtered.length === 0 && (
+            <ul className="space-y-4">
+                {loading ? (
+                    <p className="text-center text-purple-300">Carregando...</p>
+                ) : schools.length > 0 ? (
+                    schools.map(school => (
+                        <li
+                            key={school.id}
+                            className="flex justify-between items-center bg-purple-700/20 p-4 rounded"
+                        >
+                            <div>
+                                <p className="font-medium">{school.name}</p>
+                                <p className="text-sm text-purple-300">
+                                    {school.address}, {school.neighborhood}, {school.city} – {school.state}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => handleView(school.id)}
+                                className="text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
+                            >
+                                Ver escola
+                            </button>
+                        </li>
+                    ))
+                ) : (
                     <p className="text-center text-purple-300">Nenhuma escola encontrada.</p>
                 )}
             </ul>
 
-            {totalPages > 1 && (
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                />
-            )}
+
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
+
         </section>
     )
 }

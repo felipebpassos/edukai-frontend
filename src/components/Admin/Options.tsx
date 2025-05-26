@@ -1,9 +1,10 @@
+// src/components/Admin/Options.tsx
+
 'use client'
 
 import React, { useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import type { RootState } from '@/store'
-import { logout } from '@/store/slices/authSlice'
 import { NavigationButton } from '@/components/NavigationButton'
 import { faUpload, faBook, faUserCircle } from '@fortawesome/free-solid-svg-icons'
 import ProfileSection from '@/components/Admin/ProfileSection'
@@ -11,14 +12,9 @@ import Uploads from '@/components/Admin/Uploads'
 import Subjects from '@/components/Admin/Subjects'
 
 export default function Options() {
-    const dispatch = useDispatch()
     const { name, email, phone } = useSelector((state: RootState) => state.auth)
 
-    const [active, setActive] = useState<'perfil' | 'uploads' | 'materias'>('perfil')
-
-    const handleLogout = () => {
-        dispatch(logout())
-    }
+    const [active, setActive] = useState<'perfil' | 'uploads' | 'disciplinas'>('perfil')
 
     return (
         <div
@@ -47,9 +43,9 @@ export default function Options() {
                 />
                 <NavigationButton
                     icon={faBook}
-                    text="Matérias"
-                    active={active === 'materias'}
-                    onClick={() => setActive('materias')}
+                    text="Disciplinas"
+                    active={active === 'disciplinas'}
+                    onClick={() => setActive('disciplinas')}
                 />
             </div>
 
@@ -61,14 +57,7 @@ export default function Options() {
             />
             }
             {active === 'uploads' && <Uploads />}
-            {active === 'materias' && <Subjects />}
-
-            <button
-                onClick={handleLogout}
-                className="mt-6 w-full bg-white text-primary font-semibold py-2 rounded-xl"
-            >
-                Sair
-            </button>
+            {active === 'disciplinas' && <Subjects />}
         </div>
     )
 }

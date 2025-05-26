@@ -168,6 +168,7 @@ export default function Students() {
             />
 
             <AddEditModal<CreateUserRequest>
+                key={isEditing ? selectedStudent?.id : 'new'}
                 title={isEditing ? 'Editar Aluno' : 'Cadastrar Aluno'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}

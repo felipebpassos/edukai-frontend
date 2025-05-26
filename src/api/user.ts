@@ -1,5 +1,8 @@
 // src/api/users.ts
-import type { CreateUserRequest, UpdateUserRequest, User, GetUserByRoleParams, PaginatedResponse } from '@/types/user';
+import type { CreateUserRequest, UpdateUserRequest, User, GetUserByRoleParams } from '@/types/user';
+import type {
+    PaginatedResponse,
+} from '@/types/common';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
 
