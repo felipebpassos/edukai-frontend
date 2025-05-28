@@ -11,7 +11,7 @@ export type ChatSession = {
     id: string
     title: string
     messages: ChatMessage[]
-    createdAt: string  // ISO
+    createdAt: string
 }
 
 export interface AgentAiState {

@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { FaEdit, FaPlus, FaSearch, FaTrash } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
 import { getSchools } from '@/api/school'
 import type { RootState } from '@/store'
@@ -34,6 +35,9 @@ export default function Schools() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
+
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     const fields: FieldConfig<{
         name: string
@@ -111,9 +115,17 @@ export default function Schools() {
         console.log('Ver escola com ID:', id)
     }
 
-    const handleDelete = (id: string) => {
+    const requestDelete = (id: string) => {
+        setDeleteId(id)
+        setShowDeleteModal(true)
+    }
+
+    const confirmDelete = () => {
+        if (!deleteId) return
+        setShowDeleteModal(false)
         alert('Escola deletada (mock). Veja o console para detalhes.')
-        console.log('Deletar escola:', id)
+        console.log('Deletar escola:', deleteId)
+        setDeleteId(null)
     }
 
     const handleSubmit = async (data: {
@@ -192,7 +204,7 @@ export default function Schools() {
                                     <FaEdit className="text-white text-sm" />
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(school.id)}
+                                    onClick={() => requestDelete(school.id)}
                                     className="p-2 rounded bg-purple-800 hover:bg-purple-600"
                                 >
                                     <FaTrash className="text-white text-sm" />
@@ -235,6 +247,15 @@ export default function Schools() {
                 initialValues={selectedSchool ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
+            />
+
+            {/* Confirm Deletion */}
+            <ConfirmModal
+                title="Confirmar exclusão"
+                message="Deseja realmente deletar esta escola?"
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
             />
         </section>
     )

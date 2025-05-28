@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
 import { getDirectors } from '@/api/user'
 import type { CreateUserRequest, User } from '@/types/user'
@@ -32,6 +33,9 @@ export default function Directors() {
     const [isEditing, setIsEditing] = useState(false)
     const [selectedDirector, setSelectedDirector] = useState<Director | null>(null)
 
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+
     const fields: FieldConfig<CreateUserRequest>[] = [
         { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome', required: true },
         { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email', required: true },
@@ -46,14 +50,14 @@ export default function Directors() {
     }
 
     useEffect(() => {
-        if (!token) return;
+        if (!token) return
 
-        setLoading(true);
-        setError(null);
+        setLoading(true)
+        setError(null)
 
         getDirectors({ page: currentPage, limit: pageSize, name: searchTerm }, token)
             .then(res => {
-                const { data, meta } = res;
+                const { data, meta } = res
                 setDirectors(
                     data.map((u: User) => ({
                         id: u.id,
@@ -61,16 +65,15 @@ export default function Directors() {
                         email: u.email ?? '',
                         phone: u.phone ?? '',
                     }))
-                );
-                setTotal(meta.total);
+                )
+                setTotal(meta.total)
             })
             .catch(err => {
-                console.error('Erro na API:', err);
-                setError(err.message);
+                console.error('Erro na API:', err)
+                setError(err.message)
             })
-            .finally(() => setLoading(false));
-    }, [token, currentPage, searchTerm]);
-
+            .finally(() => setLoading(false))
+    }, [token, currentPage, searchTerm])
 
     const handleNew = () => {
         setIsEditing(false)
@@ -84,18 +87,26 @@ export default function Directors() {
         setIsModalOpen(true)
     }
 
-    const handleDelete = (id: string) => {
+    const requestDelete = (id: string) => {
+        setDeleteId(id)
+        setShowDeleteModal(true)
+    }
+
+    const confirmDelete = () => {
+        if (!deleteId) return
+        setShowDeleteModal(false)
         alert('Diretor deletado (mock). Veja o console para detalhes.')
-        console.log('Deletar diretor com ID:', id)
+        console.log('Deletar diretor com ID:', deleteId)
+        setDeleteId(null)
     }
 
     const handleSubmit = async (data: CreateUserRequest) => {
         if (isEditing && selectedDirector) {
-            alert('Professor editado (mock). Veja o console para detalhes.')
-            console.log('Editar professor:', { id: selectedDirector.id, ...data })
+            alert('Diretor editado (mock). Veja o console para detalhes.')
+            console.log('Editar diretor:', { id: selectedDirector.id, ...data })
         } else {
-            alert('Professor criado (mock). Veja o console para detalhes.')
-            console.log('Novo professor:', data)
+            alert('Diretor criado (mock). Veja o console para detalhes.')
+            console.log('Novo diretor:', data)
         }
         setIsModalOpen(false)
     }
@@ -160,7 +171,7 @@ export default function Directors() {
                                     <FaEdit className="text-white text-sm" />
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(director.id)}
+                                    onClick={() => requestDelete(director.id)}
                                     className="p-2 rounded bg-purple-800 hover:bg-purple-600"
                                 >
                                     <FaTrash className="text-white text-sm" />
@@ -190,6 +201,15 @@ export default function Directors() {
                 initialValues={selectedDirector ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
+            />
+
+            {/* Confirm Deletion */}
+            <ConfirmModal
+                title="Confirmar exclusão"
+                message="Deseja realmente deletar este diretor?"
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
             />
         </section>
     )

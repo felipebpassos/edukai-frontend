@@ -6,7 +6,14 @@ import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
-import { getSupervisors } from '@/api/user'
+import ConfirmModal from '@/components/common/ConfirmModal'
+import NotificationToast from '@/components/common/NotificationToast'
+import {
+    getSupervisors,
+    createSupervisor,
+    updateSupervisor,
+    deleteSupervisor,
+} from '@/api/user'
 import type { User } from '@/types/user'
 import type { RootState } from '@/store'
 
@@ -14,11 +21,11 @@ type Client = {
     id: string
     name: string
     email: string
-    phone: string
+    phone?: string
 }
 
 export default function Clients() {
-    const token = useSelector((state: RootState) => state.auth.access_token)
+    const token = useSelector((state: RootState) => state.auth.access_token)!
     const [allClients, setAllClients] = useState<Client[]>([])
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
@@ -28,53 +35,97 @@ export default function Clients() {
     const [isEditing, setIsEditing] = useState(false)
     const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const fields: FieldConfig<{ name: string; email: string; phone: string }>[] = [
-        { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome', required: true },
-        { name: 'email', label: 'Email', type: 'text', placeholder: 'Digite o email', required: true },
-        { name: 'phone', label: 'Telefone', type: 'text', placeholder: 'Digite o telefone', required: true },
-    ]
+    const [toast, setToast] = useState<{
+        type: 'success' | 'error'
+        message: string
+    } | null>(null)
 
-    // 1. fetch all supervisors once
-    useEffect(() => {
-        if (!token) return
+    const showToast = (type: 'success' | 'error', message: string) => {
+        setToast({ type, message })
+    }
+
+    const loadClients = async () => {
         setLoading(true)
         setError(null)
-
-        getSupervisors({ page: 1, limit: 1000, name: undefined, email: undefined }, token)
-            .then(res => {
-                const clients = res.data.map((u: User) => ({
+        try {
+            const res = await getSupervisors({ page: 1, limit: 1000 }, token)
+            setAllClients(
+                res.data.map((u: User) => ({
                     id: u.id,
                     name: u.name,
-                    email: u.email ?? '',
-                    phone: u.phone ?? '',
+                    email: u.email,
+                    phone: u.phone,
                 }))
-                setAllClients(clients)
-            })
-            .catch(err => setError(err.message))
-            .finally(() => setLoading(false))
+            )
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro desconhecido')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        if (token) loadClients()
     }, [token])
 
-    // 2. filter + paginate in memory
     const filtered = allClients.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
-
-    // never less than one page
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
-
-    // enforce valid page
-    const handlePageChange = (page: number) => {
-        if (page < 1 || page > totalPages) return
-        setCurrentPage(page)
-    }
-
     const paginated = filtered.slice(
         (currentPage - 1) * pageSize,
         currentPage * pageSize
     )
+
+    const commonFields: FieldConfig<{
+        name: string
+        email: string
+        phone?: string
+        password?: string
+    }>[] = [
+            {
+                name: 'name',
+                label: 'Nome',
+                type: 'text',
+                placeholder: 'Digite o nome',
+                required: true,
+            },
+            {
+                name: 'email',
+                label: 'Email',
+                type: 'text',
+                placeholder: 'Digite o email',
+                required: true,
+            },
+            {
+                name: 'phone',
+                label: 'Telefone',
+                type: 'text',
+                placeholder: 'Digite o telefone',
+                required: true,
+            },
+        ]
+
+    const passwordField: FieldConfig<{
+        name: string
+        email: string
+        phone?: string
+        password?: string
+    }> = {
+        name: 'password',
+        label: 'Senha',
+        type: 'text',
+        placeholder: isEditing ? 'Crie uma nova senha' : 'Crie uma senha',
+        required: !isEditing,
+    }
+
+    const fields = [...commonFields, passwordField]
 
     const handleNew = () => {
         setIsEditing(false)
@@ -88,24 +139,83 @@ export default function Clients() {
         setIsModalOpen(true)
     }
 
-    const handleDelete = (id: string) => {
-        alert('Cliente deletado (mock). Veja o console para detalhes.')
-        console.log('Deletar cliente com ID:', id)
+    const handleSubmit = async (data: {
+        name: string
+        email: string
+        phone?: string
+        password?: string
+    }) => {
+        try {
+            if (isEditing && selectedClient) {
+                const updateDto: Partial<{
+                    name: string
+                    email: string
+                    phone?: string
+                    password: string
+                }> = {
+                    name: data.name,
+                    email: data.email,
+                    phone: data.phone,
+                }
+                if (data.password) updateDto.password = data.password
+
+                await updateSupervisor(selectedClient.id, updateDto, token)
+                showToast('success', 'Supervisor atualizado com sucesso!')
+            } else {
+                if (!data.password) {
+                    showToast('error', 'Senha é obrigatória para cadastro')
+                    return
+                }
+                await createSupervisor(
+                    {
+                        name: data.name,
+                        email: data.email,
+                        phone: data.phone,
+                        password: data.password,
+                    },
+                    token
+                )
+                showToast('success', 'Supervisor criado com sucesso!')
+            }
+            setIsModalOpen(false)
+            loadClients()
+        } catch (err: unknown) {
+            const errorMessage =
+                err instanceof Error ? err.message : 'Erro na operação'
+            showToast('error', errorMessage)
+        }
     }
 
-    const handleSubmit = async (data: { name: string; email: string; phone: string }) => {
-        if (isEditing && selectedClient) {
-            alert('Cliente editado (mock). Veja o console para detalhes.')
-            console.log('Editar cliente:', { id: selectedClient.id, ...data })
-        } else {
-            alert('Cliente criado (mock). Veja o console para detalhes.')
-            console.log('Novo cliente:', data)
+    const requestDelete = (id: string) => {
+        setDeleteId(id)
+        setShowDeleteModal(true)
+    }
+
+    const confirmDelete = async () => {
+        if (!deleteId) return
+        try {
+            await deleteSupervisor(deleteId, token)
+            showToast('success', 'Supervisor deletado com sucesso!')
+            setShowDeleteModal(false)
+            loadClients()
+            setDeleteId(null)
+        } catch (err: unknown) {
+            const errorMessage =
+                err instanceof Error ? err.message : 'Erro na operação'
+            showToast('error', errorMessage)
         }
-        setIsModalOpen(false)
     }
 
     return (
-        <section className="bg-purple-900/50 p-6 rounded-lg shadow text-white">
+        <section className="bg-purple-900/50 p-6 rounded-lg shadow text-white relative">
+            {toast && (
+                <NotificationToast
+                    type={toast.type}
+                    message={toast.message}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-semibold">Clientes</h2>
                 <button
@@ -131,6 +241,13 @@ export default function Clients() {
                     }}
                 />
             </div>
+
+            {filtered.length > 0 && (
+                <p className="mb-1 text-sm text-purple-300">
+                    {filtered.length} resultado{filtered.length > 1 ? 's' : ''} encontrado
+                    {filtered.length > 1 ? 's' : ''}
+                </p>
+            )}
 
             {error && <p className="text-red-400 mb-4">Erro ao carregar: {error}</p>}
 
@@ -160,7 +277,7 @@ export default function Clients() {
                                     <FaEdit className="text-white text-sm" />
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(client.id)}
+                                    onClick={() => requestDelete(client.id)}
                                     className="p-2 rounded bg-purple-800 hover:bg-purple-600"
                                 >
                                     <FaTrash className="text-white text-sm" />
@@ -176,11 +293,16 @@ export default function Clients() {
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={handlePageChange}
+                onPageChange={setCurrentPage}
             />
 
-            <AddEditModal<{ name: string; email: string; phone: string }>
-                key={isEditing ? selectedClient?.id : 'new'}
+            <AddEditModal<{
+                name: string
+                email: string
+                phone?: string
+                password?: string
+            }>
+                key={isEditing && selectedClient ? selectedClient.id : 'new'}
                 title={isEditing ? 'Editar Cliente' : 'Cadastrar Cliente'}
                 isOpen={isModalOpen}
                 isEditing={isEditing}
@@ -188,6 +310,14 @@ export default function Clients() {
                 initialValues={selectedClient ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
+            />
+
+            <ConfirmModal
+                title="Confirmar exclusão"
+                message="Deseja realmente deletar este cliente?"
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
             />
         </section>
     )

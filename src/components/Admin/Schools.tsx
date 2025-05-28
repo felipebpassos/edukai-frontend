@@ -2,9 +2,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { FaSearch } from 'react-icons/fa'
+import { FaSearch, FaTrash } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { getSchools } from '@/api/school'
 import type { RootState } from '@/store'
 import type { School as ApiSchool } from '@/types/school'
@@ -29,6 +30,9 @@ export default function Schools() {
 
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
@@ -62,6 +66,19 @@ export default function Schools() {
 
     const handleView = (id: string) => {
         console.log('Ver escola com ID:', id)
+    }
+
+    const requestDelete = (id: string) => {
+        setDeleteId(id)
+        setShowDeleteModal(true)
+    }
+
+    const confirmDelete = () => {
+        if (!deleteId) return
+        setShowDeleteModal(false)
+        alert('Escola deletada (mock). Veja o console para detalhes.')
+        console.log('Deletar escola com ID:', deleteId)
+        setDeleteId(null)
     }
 
     return (
@@ -105,12 +122,20 @@ export default function Schools() {
                                     {school.address}, {school.neighborhood}, {school.city} – {school.state}
                                 </p>
                             </div>
-                            <button
-                                onClick={() => handleView(school.id)}
-                                className="text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
-                            >
-                                Ver escola
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handleView(school.id)}
+                                    className="text-sm bg-purple-800 hover:bg-purple-600 px-3 py-1 rounded"
+                                >
+                                    Ver escola
+                                </button>
+                                <button
+                                    onClick={() => requestDelete(school.id)}
+                                    className="p-2 rounded bg-purple-800 hover:bg-purple-600"
+                                >
+                                    <FaTrash className="text-white text-sm" />
+                                </button>
+                            </div>
                         </li>
                     ))
                 ) : (
@@ -118,13 +143,19 @@ export default function Schools() {
                 )}
             </ul>
 
-
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
             />
 
+            <ConfirmModal
+                title="Confirmar exclusão"
+                message="Deseja realmente deletar esta escola?"
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+            />
         </section>
     )
 }

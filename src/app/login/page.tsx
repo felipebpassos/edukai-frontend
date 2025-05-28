@@ -5,6 +5,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppDispatch } from '@/store/hooks';
+import { setSubjects, clearSubjects } from '@/store/slices/subjectSlice';
+import { getSubjects } from '@/api/subject';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 
@@ -21,6 +24,7 @@ export default function LoginPage() {
     const [modalType, setModalType] = useState<ModalType | null>(null);
 
     const { auth, login } = useAuth();
+    const dispatch = useAppDispatch();
     const router = useRouter();
 
     useEffect(() => {
@@ -36,15 +40,27 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (!hasMounted) return;
-        if (auth.access_token) router.replace('/dashboard');
-    }, [hasMounted, auth.access_token, router]);
+        if (auth.access_token) {
+            dispatch(clearSubjects());
+            getSubjects(auth.access_token)
+                .then(subs => dispatch(setSubjects(subs)))
+                .catch(() => { });
+            router.replace('/dashboard');
+        }
+    }, [hasMounted, auth.access_token, router, dispatch]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setLoading(true);
         try {
-            await login(email, password);
+            const creds = await login(email, password);
+            const token = creds.access_token!;
+
+            dispatch(clearSubjects());
+            const subs = await getSubjects(token);
+            dispatch(setSubjects(subs));
+
             router.push('/dashboard');
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erro inesperado');

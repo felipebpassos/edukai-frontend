@@ -1,9 +1,11 @@
+// src/components/Admin/Users.tsx
 'use client'
 
 import React, { useState } from 'react'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
 import Pagination from '@/components/common/Pagination'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import type { CreateUserRequest } from '@/types/user'
 
 type Client = { id: string; name: string; description: string }
@@ -90,7 +92,11 @@ export default function Users() {
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 5
 
-    // Filtros e pesquisa
+    // deletion state
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+    // filtros e pesquisa
     const filteredBySearch = users.filter(u =>
         u.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -131,8 +137,16 @@ export default function Users() {
     }
 
     const handleDelete = (id: string) => {
+        setDeleteId(id)
+        setShowDeleteModal(true)
+    }
+
+    const confirmDelete = () => {
+        if (!deleteId) return
+        setShowDeleteModal(false)
         alert('Usuário deletado (mock). Veja o console para detalhes.')
-        console.log('Deletar usuário com ID:', id)
+        console.log('Deletar usuário com ID:', deleteId)
+        setDeleteId(null)
     }
 
     const handleSubmit = async (data: CreateUserRequest) => {
@@ -166,34 +180,57 @@ export default function Users() {
             </div>
 
             <div className="flex flex-wrap items-center mb-6 gap-4">
-                {/* filtros junto ao título */}
                 <select
                     className="bg-purple-700/20 text-white px-3 py-2 rounded focus:outline-none"
                     value={filterType}
-                    onChange={e => { setFilterType(e.target.value as UserType); setFilterClient(''); setFilterSchool(''); setCurrentPage(1) }}
+                    onChange={e => {
+                        setFilterType(e.target.value as UserType)
+                        setFilterClient('')
+                        setFilterSchool('')
+                        setCurrentPage(1)
+                    }}
                 >
                     <option value="">Todos os tipos</option>
-                    {userTypes.map(t => (<option key={t} value={t}>{t}</option>))}
+                    {userTypes.map(t => (
+                        <option key={t} value={t}>
+                            {t}
+                        </option>
+                    ))}
                 </select>
+
                 {(filterType === 'Diretor' || filterType === 'Professor' || filterType === 'Aluno') && (
                     <select
                         className="bg-purple-700/20 text-white px-3 py-2 rounded focus:outline-none"
                         value={filterClient}
-                        onChange={e => { setFilterClient(e.target.value); setFilterSchool(''); setCurrentPage(1) }}
+                        onChange={e => {
+                            setFilterClient(e.target.value)
+                            setFilterSchool('')
+                            setCurrentPage(1)
+                        }}
                     >
                         <option value="">Todos os clientes</option>
-                        {initialMockClients.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                        {initialMockClients.map(c => (
+                            <option key={c.id} value={c.id}>
+                                {c.name}
+                            </option>
+                        ))}
                     </select>
                 )}
+
                 {(filterType === 'Professor' || filterType === 'Aluno') && (
                     <select
                         className="bg-purple-700/20 text-white px-3 py-2 rounded focus:outline-none"
                         value={filterSchool}
-                        onChange={e => { setFilterSchool(e.target.value); setCurrentPage(1) }}
+                        onChange={e => {
+                            setFilterSchool(e.target.value)
+                            setCurrentPage(1)
+                        }}
                     >
                         <option value="">Todas as escolas</option>
                         {(filterClient ? schoolsByClient[filterClient] || [] : initialMockSchools).map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
+                            <option key={s.id} value={s.id}>
+                                {s.name}
+                            </option>
                         ))}
                     </select>
                 )}
@@ -208,7 +245,10 @@ export default function Users() {
                     placeholder="Pesquisar por nome"
                     className="w-full pl-10 py-2 px-3 bg-purple-700/20 placeholder-purple-300 text-white rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                     value={searchTerm}
-                    onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1) }}
+                    onChange={e => {
+                        setSearchTerm(e.target.value)
+                        setCurrentPage(1)
+                    }}
                 />
             </div>
 
@@ -218,8 +258,16 @@ export default function Users() {
                         <div>
                             <p className="font-medium">{u.name}</p>
                             <p className="text-sm text-purple-300">{u.type}</p>
-                            {u.clientId && <p className="text-sm text-purple-300">{initialMockClients.find(c => c.id === u.clientId)?.name}</p>}
-                            {u.schoolId && <p className="text-sm text-purple-300">{initialMockSchools.find(s => s.id === u.schoolId)?.name}</p>}
+                            {u.clientId && (
+                                <p className="text-sm text-purple-300">
+                                    {initialMockClients.find(c => c.id === u.clientId)?.name}
+                                </p>
+                            )}
+                            {u.schoolId && (
+                                <p className="text-sm text-purple-300">
+                                    {initialMockSchools.find(s => s.id === u.schoolId)?.name}
+                                </p>
+                            )}
                         </div>
                         <div className="flex items-center gap-2">
                             <button onClick={() => handleEdit(u)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
@@ -247,6 +295,14 @@ export default function Users() {
                 initialValues={selectedUser ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
+            />
+
+            <ConfirmModal
+                title="Confirmar exclusão"
+                message="Deseja realmente deletar este usuário?"
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
             />
         </section>
     )

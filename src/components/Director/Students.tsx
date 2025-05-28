@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
 import { getStudents } from '@/api/user'
 import type { CreateUserRequest, User } from '@/types/user'
@@ -31,6 +32,9 @@ export default function Students() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     const fields: FieldConfig<CreateUserRequest>[] = [
         { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome', required: true },
@@ -78,9 +82,17 @@ export default function Students() {
         setIsModalOpen(true)
     }
 
-    const handleDelete = (id: string) => {
+    const requestDelete = (id: string) => {
+        setDeleteId(id)
+        setShowDeleteModal(true)
+    }
+
+    const confirmDelete = () => {
+        if (!deleteId) return
+        setShowDeleteModal(false)
         alert('Aluno deletado (mock). Veja o console para detalhes.')
-        console.log('Deletar aluno com ID:', id)
+        console.log('Deletar aluno com ID:', deleteId)
+        setDeleteId(null)
     }
 
     const handleSubmit = async (data: CreateUserRequest) => {
@@ -148,7 +160,7 @@ export default function Students() {
                                     <FaEdit className="text-white text-sm" />
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(student.id)}
+                                    onClick={() => requestDelete(student.id)}
                                     className="p-2 rounded bg-purple-800 hover:bg-purple-600"
                                 >
                                     <FaTrash className="text-white text-sm" />
@@ -176,6 +188,14 @@ export default function Students() {
                 initialValues={selectedStudent ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
+            />
+
+            <ConfirmModal
+                title="Confirmar exclusão"
+                message="Deseja realmente deletar este aluno?"
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
             />
         </section>
     )

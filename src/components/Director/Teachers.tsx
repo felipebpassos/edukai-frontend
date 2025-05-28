@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { FaEdit, FaTrash, FaPlus, FaSearch } from 'react-icons/fa'
 import { useSelector } from 'react-redux'
 import Pagination from '@/components/common/Pagination'
+import ConfirmModal from '@/components/common/ConfirmModal'
 import { AddEditModal, FieldConfig } from '@/components/common/AddEditModal'
 import { getTeachers } from '@/api/user'
 import type { CreateUserRequest, User } from '@/types/user'
@@ -31,6 +32,9 @@ export default function Teachers() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
+
+    const [deleteId, setDeleteId] = useState<string | null>(null)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     const fields: FieldConfig<CreateUserRequest>[] = [
         { name: 'name', label: 'Nome', type: 'text', placeholder: 'Digite o nome', required: true },
@@ -78,9 +82,17 @@ export default function Teachers() {
         setIsModalOpen(true)
     }
 
-    const handleDelete = (id: string) => {
+    function requestDelete(id: string) {
+        setDeleteId(id)
+        setShowDeleteModal(true)
+    }
+
+    function confirmDelete() {
+        if (!deleteId) return
+        setShowDeleteModal(false)
         alert('Professor deletado (mock). Veja o console para detalhes.')
-        console.log('Deletar professor com ID:', id)
+        console.log('Deletar professor com ID:', deleteId)
+        setDeleteId(null)
     }
 
     const handleSubmit = async (data: CreateUserRequest) => {
@@ -139,7 +151,7 @@ export default function Teachers() {
                                 <button onClick={() => handleEdit(teacher)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
                                     <FaEdit className="text-white text-sm" />
                                 </button>
-                                <button onClick={() => handleDelete(teacher.id)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
+                                <button onClick={() => requestDelete(teacher.id)} className="p-2 rounded bg-purple-800 hover:bg-purple-600">
                                     <FaTrash className="text-white text-sm" />
                                 </button>
                             </div>
@@ -165,6 +177,14 @@ export default function Teachers() {
                 initialValues={selectedTeacher ?? undefined}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleSubmit}
+            />
+
+            <ConfirmModal
+                title="Confirmar exclusão"
+                message="Deseja realmente deletar este professor?"
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
             />
         </section>
     )
